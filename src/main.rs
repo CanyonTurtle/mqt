@@ -1,3 +1,4 @@
+
 use macroquad::prelude::*;
 
 fn window_conf() -> Conf {
@@ -97,6 +98,10 @@ async fn main() {
         }
         texture.update(&im);
         i += 1;
+        draw_text_ex(&format!["{} fps", get_fps()], 10., 10., TextParams{
+            ..Default::default()
+        });
         next_frame().await
+        
     }
 }

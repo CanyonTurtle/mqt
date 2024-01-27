@@ -98,7 +98,8 @@ async fn main() {
         }
         texture.update(&im);
         i += 1;
-        draw_text_ex(&format!["{} fps", get_fps()], 10., 10., TextParams{
+        draw_text_ex(&format!["{} fps", get_fps()], 30., 30., TextParams{
+            color: color_u8![255, 0, 0, 255],
             ..Default::default()
         });
         next_frame().await

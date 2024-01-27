@@ -1,5 +1,5 @@
 
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand::{gen_range, RandomRange}};
 
 /// Clone an image, replacing the colors with some colormap.
 fn recolor_spritesheet() {}
@@ -69,6 +69,11 @@ async fn main() {
     set_pc_assets_folder("assets");
     const MAX_SCREEN_DIM: f32 = 400.;
 
+    const N_KITTIES: usize = 50;
+    let mut rand_positions = vec![];
+    for _ in 0..N_KITTIES {
+        rand_positions.push([gen_range(0, MAX_SCREEN_DIM as i32), gen_range(0, MAX_SCREEN_DIM as i32)]);
+    }
     
     
     // let mut im = texture.get_texture_data();
@@ -154,14 +159,14 @@ async fn main() {
         for (j, c) in game_framebuffer.get_image_data_mut().iter_mut().enumerate() {
             *c = kitty_raw_image_bytes[(j + i) % (MAX_SCREEN_DIM.powi(2) as usize)];
         }
-        for _ in 0..100{
+        for i in 0..N_KITTIES{
             blit_sub(
                 &kitty_image_copy, 
                 &mut game_framebuffer,
                 70,
                 80,
-                10,
-                10,
+                rand_positions[i][0],
+                rand_positions[i][1],
                 30,
                 20
             );
@@ -169,10 +174,10 @@ async fn main() {
         
         texture.update(&game_framebuffer);
         i += 1;
-        draw_text_ex(&format!["{} fps", get_fps()], 30., 30., TextParams{
-            color: color_u8![255, 0, 0, 255],
-            ..Default::default()
-        });
+        // draw_text_ex(&format!["{} fps", get_fps()], 30., 30., TextParams{
+        //     color: color_u8![255, 0, 0, 255],
+        //     ..Default::default()
+        // });
         next_frame().await
     }
 }

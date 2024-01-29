@@ -2,20 +2,40 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
-const SPRITESHEET_COLORS: [[u8; 4]; 4] = [
+const KITTY_SS_COLORS: [[u8; 4]; 5] = [
     [0xee, 0xc3, 0x9a, 0xff], // main kitty color
     [0xff, 0x67, 0xd3, 0xff], // pig / lizard color
     [0xff, 0xff, 0xff, 0xff], // foreground (tiles, cards)
-    [0x00, 0x00, 0x00, 0x00], // background / default (transparent)
+    [0x12, 0x34, 0x56, 0x78], // background color (unused color on the spriteheet)
+    [0x00, 0x00, 0x00, 0x00], // No color drawn on spritesheet (transparent)
 ];
 
-const DEFAULT_COLOR_PALLETE: [Color; 4] = [
+const DEFAULT_COLOR_PALLETTE: [Color; 5] = [
     color_u8!(0xf8, 0xff, 0xd2, 0xff), // main kitty color
     color_u8!(0xff, 0x66, 0x33, 0xff), // lizard / pig color
     color_u8!(0xe4, 0xf2, 0x88, 0xff), // foreground (tiles, cards)
-    //color_u8!(0x57, 0xda, 0xb2, 0xff), // background / default
-    color_u8!(0x00, 0x00, 0x00, 0x00),
+    color_u8!(0x57, 0xda, 0xb2, 0xff), // background / default
+    color_u8!(0x00, 0x00, 0x00, 0x00), // transparent
 ];
+
+const TITLE_COLOR_PALLETE: [[u8; 4]; 5] = [
+    [0xF9, 0xDF, 0xD1, 0xff], // main letter color
+    [0xEB, 0x9F, 0x9E, 0xff], // letter backing color
+    [0x12, 0x00, 0x00, 0x00], // transparent (unused)
+    [0x34, 0x00, 0x00, 0x00], // transparent (unused)
+    [0x00, 0x00, 0x00, 0x00], // transparent
+];
+
+/// Convert colors from src to mapped, when they occur in an image.
+fn build_colormap(src_colors: [[u8; 4]; 5], mapped_colors: [Color; 5]) -> HashMap<[u8; 4], Color> {
+    let mut colormap = HashMap::new();
+
+    for i in 0..src_colors.len() {
+        colormap.insert(src_colors[i], mapped_colors[i]);
+    }
+
+    colormap
+}
 
 /// Create a new image with the colors replaced from some colormap.
 fn recolor_spritesheet(image: &Image, colormap: HashMap<[u8; 4], Color>) -> Image {
@@ -41,29 +61,33 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut colormap = HashMap::new();
-    for i in 0..DEFAULT_COLOR_PALLETE.len() {
-        colormap.insert(SPRITESHEET_COLORS[i], DEFAULT_COLOR_PALLETE[i]);
-    }
-
     set_pc_assets_folder("assets");
 
     const MAX_SCREEN_DIM: f32 = 400.;
 
     let kitty_bg_texture: Texture2D = load_texture("kittygame.png").await.unwrap();
     let kitty_ss_texture: Texture2D = load_texture("kitty-ss.png").await.unwrap();
+    let kitty_title_texture: Texture2D = load_texture("kitty_title.png").await.unwrap();
 
     // let font = load_ttf_font("SRAFreePixelFontPack/PixelSmall.ttf")
 
-    let font = load_ttf_font("Pixeloid_Font_0_5/TrueType (.ttf)/PixeloidSans.ttf")
+    let mut font = load_ttf_font("PressStart2P-Regular.ttf")
         .await
         .unwrap();
 
-    let recolored_ss = recolor_spritesheet(&kitty_ss_texture.get_texture_data(), colormap);
+    font.set_filter(FilterMode::Nearest);
+
+    let recolored_ss = recolor_spritesheet(&kitty_ss_texture.get_texture_data(), build_colormap(KITTY_SS_COLORS, DEFAULT_COLOR_PALLETTE));
     kitty_ss_texture.update(&recolored_ss);
+    
+    let recolored_title = recolor_spritesheet(&kitty_title_texture.get_texture_data(), build_colormap(TITLE_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE));
+    kitty_title_texture.update(&recolored_title);
+
+    
 
     kitty_bg_texture.set_filter(FilterMode::Nearest);
     kitty_ss_texture.set_filter(FilterMode::Nearest);
+    kitty_title_texture.set_filter(FilterMode::Nearest);
 
     // we only want to create a new texture (and image) when necessary, because
     // it's expensive. So track when the screen changes dimensions.
@@ -124,7 +148,7 @@ async fn main() {
             }
         }
 
-        clear_background(LIGHTGRAY);
+        clear_background(DEFAULT_COLOR_PALLETTE[DEFAULT_COLOR_PALLETTE.len() - 2]);
         let mut cam = Camera2D::from_display_rect(Rect::new(
             0.,
             0.,
@@ -138,29 +162,29 @@ async fn main() {
             set_camera(&cam);
         }
 
-        draw_texture(&kitty_bg_texture, 0., 0., WHITE);
-        for _ in 0..10000 {
-            draw_texture_ex(
-                &kitty_ss_texture,
-                10.,
-                10.,
-                WHITE,
-                DrawTextureParams {
-                    source: Some(Rect::new(16., 56., 16., 8.)),
-                    ..Default::default()
-                },
-            );
-        }
+        draw_texture(&kitty_title_texture, 10., 30., WHITE);
 
+        draw_texture_ex(
+            &kitty_ss_texture,
+            10.,
+            80.,
+            WHITE,
+            DrawTextureParams {
+                source: Some(Rect::new(16., 56., 16., 8.)),
+                ..Default::default()
+            },
+        );
+        
+        
         draw_text_ex(
             &format!["CanyonTurtle: {}", fps],
             10.,
-            10.,
+            20.,
             TextParams {
-                font_size: 9,
+                font_size: 8,
                 font: Some(&font),
                 font_scale: 1.,
-                color: DEFAULT_COLOR_PALLETE[0],
+                color: DEFAULT_COLOR_PALLETTE[0],
                 ..Default::default()
             },
         );

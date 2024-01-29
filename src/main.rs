@@ -54,6 +54,7 @@ fn window_conf() -> Conf {
         window_height: 900,
         fullscreen: false,
         window_resizable: true,
+        high_dpi: true,
         ..Default::default()
     }
 }
@@ -71,7 +72,7 @@ async fn main() {
 
     // let font = load_ttf_font("SRAFreePixelFontPack/PixelSmall.ttf")
 
-    let mut font = load_ttf_font("PressStart2P-Regular.ttf")
+    let mut font = load_ttf_font("Pixeloid_Font_0_5/TrueType (.ttf)/PixeloidSans.ttf")
         .await
         .unwrap();
 
@@ -181,7 +182,7 @@ async fn main() {
             10.,
             20.,
             TextParams {
-                font_size: 8,
+                font_size: 9,
                 font: Some(&font),
                 font_scale: 1.,
                 color: DEFAULT_COLOR_PALLETTE[0],

@@ -7,3 +7,10 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.4"
+
+[package.metadata.android.activity_attributes]
+"android:exported" =  "true"
+
+[package.metadata.android]
+assets = "assets/"
+build_targets = ["armv7-linux-androideabi"]

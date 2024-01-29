@@ -1,7 +1,31 @@
+use std::collections::HashMap;
+
 use macroquad::prelude::*;
 
-/// Clone an image, replacing the colors with some colormap.
-// fn recolor_spritesheet() {}
+const SPRITESHEET_COLORS: [[u8; 4]; 4] = [
+    [0xee, 0xc3, 0x9a, 0xff], // main kitty color
+    [0xff, 0x67, 0xd3, 0xff], // pig / lizard color
+    [0xff, 0xff, 0xff, 0xff], // foreground (tiles, cards)
+    [0x00, 0x00, 0x00, 0x00], // background / default (transparent)
+];
+
+const DEFAULT_COLOR_PALLETE: [Color; 4] = [
+    color_u8!(0xf8, 0xff, 0xd2, 0xff), // main kitty color
+    color_u8!(0xff, 0x66, 0x33, 0xff), // lizard / pig color
+    color_u8!(0xe4, 0xf2, 0x88, 0xff), // foreground (tiles, cards)
+    //color_u8!(0x57, 0xda, 0xb2, 0xff), // background / default
+    color_u8!(0x00, 0x00, 0x00, 0x00),
+];
+
+/// Create a new image with the colors replaced from some colormap.
+fn recolor_spritesheet(image: &Image, colormap: HashMap<[u8; 4], Color>) -> Image {
+    let mut im = image.clone();
+    for pixel in im.get_image_data_mut().iter_mut(){
+        let color: [u8; 4] = pixel.clone().into();
+        *pixel = colormap[&color].into();
+    }
+    im
+}
 
 fn window_conf() -> Conf {
     Conf {
@@ -13,8 +37,15 @@ fn window_conf() -> Conf {
         ..Default::default()
     }
 }
+
 #[macroquad::main(window_conf)]
 async fn main() {
+
+    let mut colormap = HashMap::new();
+    for i in 0..DEFAULT_COLOR_PALLETE.len() {
+        colormap.insert(SPRITESHEET_COLORS[i], DEFAULT_COLOR_PALLETE[i]);
+    }
+
     set_pc_assets_folder("assets");
 
     const MAX_SCREEN_DIM: f32 = 400.;
@@ -27,6 +58,9 @@ async fn main() {
     let font = load_ttf_font("Pixeloid_Font_0_5/TrueType (.ttf)/PixeloidSans.ttf")
         .await
         .unwrap();
+
+    let recolored_ss = recolor_spritesheet(&kitty_ss_texture.get_texture_data(), colormap);
+    kitty_ss_texture.update(&recolored_ss);
 
     kitty_bg_texture.set_filter(FilterMode::Nearest);
     kitty_ss_texture.set_filter(FilterMode::Nearest);
@@ -43,6 +77,7 @@ async fn main() {
         if i % 15 == 0 {
             fps = get_fps();
             i = 0;
+            
         }
         // we want the dimensions of the screen to be:
         // minimum internal dimension is 160
@@ -125,6 +160,7 @@ async fn main() {
                 font_size: 9,
                 font: Some(&font),
                 font_scale: 1.,
+                color: DEFAULT_COLOR_PALLETE[0],
                 ..Default::default()
             },
         );

@@ -189,6 +189,26 @@ async fn main() {
                 ..Default::default()
             },
         );
+
+        for i in 0..5 {
+            for j in 0..5 {
+                let (x, y) = (10. + i as f32 * 60., 20. + j as f32 * 60.);
+                draw_text_ex(
+                    &format!["({}, {})", x, y],
+                    x,
+                    y,
+                    TextParams {
+                        font_size: 9,
+                        font: Some(&font),
+                        font_scale: 1.,
+                        color: DEFAULT_COLOR_PALLETTE[0],
+                        ..Default::default()
+                    },
+                );
+            }
+        }
+        
+
         next_frame().await
     }
 }

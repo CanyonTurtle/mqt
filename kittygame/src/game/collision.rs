@@ -1,7 +1,7 @@
 
 use crate::{
     game::{ability_cards::{AbilityCardStack, AbilityCardTypes}, entities::{Player, WarpAbility, WarpState}, popup_text::{PopTextRingbuffer, PopupIcon}},
-    spritesheet,
+    spritesheet::{self, BUTTON_1, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT},
 };
 
 use super::{
@@ -14,7 +14,7 @@ use super::{
     mapchunk::{MapChunk, TileAlignedBoundingBox}, cloud::Cloud,
 };
 
-use crate::wasm4::*;
+// use crate::wasm4::*;
 
 pub fn check_absolute_point_inside_tile_aligned_bound(
     x: i32,

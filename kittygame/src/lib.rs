@@ -12,7 +12,7 @@ mod kitty_ss;
 pub mod spritesheet;
 
 //#[cfg(feature = "wasm-4")]
-mod wasm4;
+// mod wasm4;
 
 use game::{
     camera::Camera,
@@ -27,17 +27,16 @@ use game::{
     music::{play_bgm, SONGS}, game_map::MAP_TILESETS, cloud::Cloud,
 };
 
-use spritesheet::{BlitSubFlags, BlitSubFunc, LineFunc, Spritesheet, TextStrFunc, TextBytesFunc};
+use spritesheet::{BlitSubFlags, BlitSubFunc, LineFunc, RectFunc, Spritesheet, TextStrFunc};
 use title_ss::{OUTPUT_ONLINEPNGTOOLS_WIDTH, OUTPUT_ONLINEPNGTOOLS_HEIGHT};
 mod game;
-use wasm4::*;
 mod title_ss;
 
-use crate::game::{
+use crate::{game::{
         collision::{get_bound_of_character, AbsoluteBoundingBox},
         entities::OptionallyEnabledPlayer,
         menus::{Modal, NormalPlayModes, MenuTypes, SelectSetup, SelectMenuFocuses}, game_constants::{COUNTDOWN_TIMER_START, START_DIFFICULTY_LEVEL, MAJOR_VERSION, MINOR_VERSION, INCR_VERSION, FINAL_LEVEL}, popup_text::{PopTextRingbuffer, PopupIcon}, rng::{GameRng, Rng}, game_state::RunType,
-    };
+    }, spritesheet::{BUTTON_1, BUTTON_2, BUTTON_LEFT, BUTTON_RIGHT}};
 
 /// draw the tiles in the map, relative to the camera.
 fn drawmap(game_state: &GameState, blit_sub: &BlitSubFunc, sw: u32, sh: u32) {
@@ -83,7 +82,7 @@ fn drawmap(game_state: &GameState, blit_sub: &BlitSubFunc, sw: u32, sh: u32) {
     }
 }
 
-static mut GAME_STATE_HOLDER: Option<GameState<'static>> = None;
+static mut GAME_STATE_HOLDER: Option<GameState> = None;
 
 /// Draw a character on-screen, relative to the camera.
 fn drawcharacter(
@@ -128,29 +127,31 @@ fn drawcharacter(
 
 static mut NPC_INPUTS: [u8; MAX_N_NPCS] = [0; MAX_N_NPCS];
 
-static mut PREVIOUS_GAMEPAD: [u8; 4] = [0, 0, 0, 0];
+
+
+// static mut PREVIOUS_GAMEPAD: [u8; 4] = [0, 0, 0, 0];
 
 /// get joystick inputs from this and last frame.
-fn get_inputs_this_frame() -> [[u8; 4]; 2] {
-    let gamepads: [u8; 4] = unsafe { [*GAMEPAD1, *GAMEPAD2, *GAMEPAD3, *GAMEPAD4] };
-    let mut btns_pressed_this_frame: [u8; 4] = [0; 4];
+// fn get_inputs_this_frame() -> [[u8; 4]; 2] {
+//     let gamepads: [u8; 4] = unsafe { [*GAMEPAD1, *GAMEPAD2, *GAMEPAD3, *GAMEPAD4] };
+//     let mut btns_pressed_this_frame: [u8; 4] = [0; 4];
 
-    for i in 0..gamepads.len() {
-        let gamepad = gamepads[i];
-        let previous = unsafe { PREVIOUS_GAMEPAD[i] };
-        let pressed_this_frame = gamepad & (gamepad ^ previous);
-        btns_pressed_this_frame[i] = pressed_this_frame;
-    }
-    unsafe { PREVIOUS_GAMEPAD.copy_from_slice(&gamepads[0..4]) };
-    [btns_pressed_this_frame, gamepads]
-}
+//     for i in 0..gamepads.len() {
+//         let gamepad = gamepads[i];
+//         let previous = unsafe { PREVIOUS_GAMEPAD[i] };
+//         let pressed_this_frame = gamepad & (gamepad ^ previous);
+//         btns_pressed_this_frame[i] = pressed_this_frame;
+//     }
+//     unsafe { PREVIOUS_GAMEPAD.copy_from_slice(&gamepads[0..4]) };
+//     [btns_pressed_this_frame, gamepads]
+// }
 
 const TOP_UI_TEXT_Y: i32 = 2;
 const BOTTOM_UI_TEXT_Y_OFFSET: i32 = -8; // 160 - 8 - 2;
 
 /// DRAW BLURRED BACKGROUND BEHIND SCORE AND TIME TEXTS IN-GAME
-fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: u16, line: &LineFunc) {
-    unsafe { *DRAW_COLORS = color }
+fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, _color: u16, line: &LineFunc, rect: &RectFunc) {
+    // unsafe { *DRAW_COLORS = color }
     let p: AbsoluteBoundingBox<i32, u32> = AbsoluteBoundingBox {
         x: pf.x as i32,
         y: pf.y as i32,
@@ -158,9 +159,9 @@ fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: u16, line
         height: pf.height as u32,
     };
 
-    unsafe {
-        *DRAW_COLORS = 0x0001;
-    }
+    // unsafe {
+    //     *DRAW_COLORS = 0x0001;
+    // }
 
     match style {
         1 => {
@@ -169,12 +170,12 @@ fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: u16, line
         _ => {}
     }
 
-    unsafe {
-        *DRAW_COLORS = match style {
-            0 => 0x0001,
-            _ => 0x0002,
-        }
-    };
+    // unsafe {
+    //     *DRAW_COLORS = match style {
+    //         0 => 0x0001,
+    //         _ => 0x0002,
+    //     }
+    // };
 
     // fill
     for i in p.x..=p.x + p.width as i32 {
@@ -189,7 +190,7 @@ fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: u16, line
         }
     }
 
-    unsafe { *DRAW_COLORS = color }
+    // unsafe { *DRAW_COLORS = color }
     // borders
 
     match style {
@@ -216,11 +217,11 @@ fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: u16, line
 
 /// Draw text with a soft background under
 fn layertext(t: &str, x: i32, y: i32, text_str: &TextStrFunc) {
-    unsafe { *DRAW_COLORS = 0x0001 }
-    text_str(t, x + 1, y);
-    text_str(t, x, y + 1);
-    text_str(t, x + 1, y + 1);
-    unsafe { *DRAW_COLORS = 0x0002 }
+    // unsafe { *DRAW_COLORS = 0x0001 }
+    // text_str(t, x + 1, y);
+    // text_str(t, x, y + 1);
+    // text_str(t, x + 1, y + 1);
+    // unsafe { *DRAW_COLORS = 0x0002 }
 
     text_str(t, x, y);
 }
@@ -230,7 +231,7 @@ const TITLE_Y: i32 = 15;
 
 fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &BlitSubFunc) {
     // RENDER THE TITLE
-    unsafe { *DRAW_COLORS = 0x0034 }
+    // unsafe { *DRAW_COLORS = 0x0034 }
     let title_x: i32 = x;
     let title_y_osc = match game_state.song_timer {
         0..=TIMER_INTERACTIVE_START => {
@@ -243,16 +244,16 @@ fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &BlitSubFunc) 
     for row in 0..OUTPUT_ONLINEPNGTOOLS_HEIGHT as i32 {
         blit_sub(Spritesheet::Title, title_x + (3000000f32 * (1f32 / (1f32 + num::Float::powf(game_state.song_timer as f32, 3f32))) * num::Float::sin((game_state.song_timer as f32 + row as f32 * 4f32) * 0.1f32)) as i32, y + title_y_osc + row, OUTPUT_ONLINEPNGTOOLS_WIDTH, 1, 0, row as u32, BlitSubFlags { flip_x: false, flip_y: false })
     }
-    unsafe {
-        *PALETTE = spritesheet::KITTY_SPRITESHEET_PALETTES[game_state.pallette_idx];
-    }
-    unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
+    // unsafe {
+    //     *PALETTE = spritesheet::KITTY_SPRITESHEET_PALETTES[game_state.pallette_idx];
+    // }
+    // unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
 }
 
 
 /// Main loop that runs every frame. Progress the game state and render.
 #[no_mangle]
-pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, text_bytes: &TextBytesFunc, sw: u32, sh: u32) {
+pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc, text_str: &TextStrFunc, sw: u32, sh: u32, btns_pressed_this_frame: &[u8; 4], gamepads: &[u8; 4]) {
     let mut game_state: &mut GameState;
 
     // -------- INITIALIZE GAME STATE IF NEEDED ----------
@@ -283,17 +284,18 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
     play_bgm(game_state.song_timer, &SONGS[game_state.song_idx]);
 
 
-    let mut player_idx: u8 = 0b0;
+    // let mut player_idx: u8 = 0b0;
+    let player_idx: u8 = 0b0;
 
     // UPDATE WHICH PLAYER WE'RE PLAYING IN NETPLAY
-    unsafe {
-        // If netplay is active
-        if *NETPLAY & 0b100 != 0 {
-            player_idx = *NETPLAY & 0b011;
-        // Render the game from player_idx's perspective
-        } else {
-        }
-    }
+    // unsafe {
+    //     // If netplay is active
+    //     if *NETPLAY & 0b100 != 0 {
+    //         player_idx = *NETPLAY & 0b011;
+    //     // Render the game from player_idx's perspective
+    //     } else {
+    //     }
+    // }
 
     // SET CAMERA POSITION
     match &mut game_state.players[player_idx as usize] {
@@ -316,7 +318,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
 
     // ------------- POLL INPUT ---------------
 
-    let [btns_pressed_this_frame, gamepads] = get_inputs_this_frame();
+    // let [btns_pressed_this_frame, gamepads] = get_inputs_this_frame();
 
     // CHECK IF WE NEED TO FREEZE CHARACTERS / GAMEPLAY ON SCREEN
     let mut showing_modal = false;
@@ -345,10 +347,10 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
     }
     
     // PREPARE TO RENDER THE MAP & ENTITIES
-    unsafe {
-        *PALETTE = spritesheet::KITTY_SPRITESHEET_PALETTES[game_state.pallette_idx];
-    }
-    unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
+    // unsafe {
+    //     *PALETTE = spritesheet::KITTY_SPRITESHEET_PALETTES[game_state.pallette_idx];
+    // }
+    // unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
 
     // MOVE AND RENDER THE PLAYERS 
     {
@@ -549,8 +551,10 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
     // just draw a spriteframe at a location. Put a colored layer behind it, like layertext() does.
     fn draw_spriteframe (spriteframe: &spritesheet::SpriteFrame, x: i32, y: i32, blit_sub: &BlitSubFunc) {
         let cf = spriteframe;
-        for (xx, yy, colors) in [(x, y, 0x1111), (x+1, y+1, 0x1111), (x, y, spritesheet::KITTY_SPRITESHEET_DRAW_COLORS)] {
-            unsafe {*DRAW_COLORS = colors}
+        // for (xx, yy, colors) in [(x, y, 0x1111), (x+1, y+1, 0x1111), (x, y, spritesheet::KITTY_SPRITESHEET_DRAW_COLORS)] {
+
+        for (xx, yy, _colors) in [(x, y, spritesheet::KITTY_SPRITESHEET_DRAW_COLORS)] {
+            // unsafe {*DRAW_COLORS = colors}
             blit_sub(
                 Spritesheet::Main,
                 xx,
@@ -578,7 +582,8 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                 },
                 0,
                 0x0001,
-                line
+                line, 
+                rect
             );
 
             draw_modal_bg(
@@ -591,6 +596,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                 0,
                 0x0001,
                 line,
+                rect,
             );
 
 
@@ -641,7 +647,8 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                                         draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], dx+1, dy+1, blit_sub)
                                     },
                                     PopupIcon::DownArrow => {
-                                        text_bytes(&[b'\x87'], dx+40, dy);
+                                        // text_bytes(&[b'\x87'], dx+40, dy);
+                                        text_str("down", dx+32, dy)
                                     }
                                 }
                             }
@@ -745,7 +752,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
 
             
             // DRAW ABILITY CARDS
-            unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
+            // unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
             match &game_state.players[player_idx as usize] {
                 OptionallyEnabledPlayer::Enabled(p) => {
                     for card in p.card_stack.cards.iter() {
@@ -798,7 +805,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
 
                             ready_to_show_text = (actual_position.width - target_position.width as f32).abs() < TOL;
 
-                            draw_modal_bg(&actual_position, 1, 0x0002, line);
+                            draw_modal_bg(&actual_position, 1, 0x0002, line, rect);
                         
                         }
 
@@ -816,7 +823,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                         }
                         
                         let modal_text = |st: &str, x, y| {
-                            unsafe {*DRAW_COLORS = 0x0002}
+                            // unsafe {*DRAW_COLORS = 0x0002}
                             text_str(st, m.actual_position.x as i32 + x, m.actual_position.y as i32 + y);
                         };
 
@@ -947,11 +954,15 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                                     let (xx, yy) = modal_offs(0, 0);
  
                                     if game_state.song_timer % 30 >= 15 {
-                                        unsafe {*DRAW_COLORS = 0x0004}
-                                        text_bytes(&[b'\x84'], xx+32, yy+114);
-                                        text_bytes(&[ b'\x85'], xx+48, yy+114);
-                                        text_bytes(&[b'\x80'], xx+15, yy+126);
-                                        text_bytes(&[ b'\x81'], xx+79, yy+126);
+                                        // unsafe {*DRAW_COLORS = 0x0004}
+                                        // text_bytes(&[b'\x84'], xx+32, yy+114);
+                                        // text_bytes(&[ b'\x85'], xx+48, yy+114);
+                                        // text_bytes(&[b'\x80'], xx+15, yy+126);
+                                        // text_bytes(&[ b'\x81'], xx+79, yy+126);
+                                        text_str("<", xx+32, yy+114);
+                                        text_str(">", xx+48, yy+114);
+                                        text_str("z", xx+15, yy+126);
+                                        text_str("x", xx+79, yy+126);
                                     }
                                     
                                     draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], xx+20, yy+62, blit_sub);
@@ -1059,7 +1070,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
             
             // SETUP TITLE MUSIC AND COLORS
             game_state.song_idx = 1;
-            unsafe { *DRAW_COLORS = 0x0002 }
+            // unsafe { *DRAW_COLORS = 0x0002 }
 
             // SHOW TITLE-SCREEN SUBTEXT
             if game_state.song_timer >= TIMER_INTERACTIVE_START {
@@ -1073,8 +1084,9 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                     0,
                     0x0001,
                     line,
+                    rect,
                 );
-                unsafe{*DRAW_COLORS = 0x0002};
+                // unsafe{*DRAW_COLORS = 0x0002};
                 if game_state.song_timer % 30 >= 15 {
                     text_str("Any key: play", 24, 110);
                 }
@@ -1094,7 +1106,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
             game_state.rng.next_for_input();
             
             // trace("updated positions");
-            unsafe { *DRAW_COLORS = 0x1112 }
+            // unsafe { *DRAW_COLORS = 0x1112 }
             
         },
         GameMode::SelectScreen(select_setup) => {
@@ -1117,13 +1129,13 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
 
             // let mut selected_box_dims = (0, 0, 0, 0);
 
-            fn draw_selected_box(dims: (i32, i32, i32, i32), style: u8, color: u16, line: &LineFunc) {
-                draw_modal_bg(&AbsoluteBoundingBox{x: dims.0 as f32, y: dims.1 as f32, width: dims.2 as f32, height: dims.3 as f32}, style, color, line);
+            fn draw_selected_box(dims: (i32, i32, i32, i32), style: u8, color: u16, line: &LineFunc, rect: &RectFunc) {
+                draw_modal_bg(&AbsoluteBoundingBox{x: dims.0 as f32, y: dims.1 as f32, width: dims.2 as f32, height: dims.3 as f32}, style, color, line, rect);
             }
 
             // draw background for menus
-            draw_modal_bg(&AbsoluteBoundingBox{x: 0f32, y: 0f32, width: 159f32, height: 159f32}, 0, 0x0001, line);
-            draw_selected_box((BOX_LEFT_MARGIN, RUN_TYPE_Y, box_width, BOX_HEIGHT), 0, 0x0001, line);
+            draw_modal_bg(&AbsoluteBoundingBox{x: 0f32, y: 0f32, width: 159f32, height: 159f32}, 0, 0x0001, line, rect);
+            draw_selected_box((BOX_LEFT_MARGIN, RUN_TYPE_Y, box_width, BOX_HEIGHT), 0, 0x0001, line, rect);
 
             // draw options that get overdrawn later if they're not selected
             // layertext("Run Type", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST);
@@ -1157,13 +1169,15 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                         }   
                     }
                     // draw box around run type
-                    draw_selected_box((BOX_LEFT_MARGIN, RUN_TYPE_Y, box_width, BOX_HEIGHT), 1, 0x0004, line);
+                    draw_selected_box((BOX_LEFT_MARGIN, RUN_TYPE_Y, box_width, BOX_HEIGHT), 1, 0x0004, line, rect);
                     // layertext("Run Type", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST);
 
                     if game_state.song_timer % 30 >= 15 {
-                        unsafe {*DRAW_COLORS = 0x0004}
-                        text_bytes(&[b'\x85'], 132, 72);
-                        text_bytes(&[b'\x80'], 45, 136);
+                        // unsafe {*DRAW_COLORS = 0x0004}
+                        // text_bytes(&[b'\x85'], 132, 72);
+                        // text_bytes(&[b'\x80'], 45, 136);
+                        text_str(">", 132, 72);
+                        text_str("z", 45, 136);
                     }
 
                     if btns_pressed_this_frame[0] & (BUTTON_2) != 0 {
@@ -1216,9 +1230,11 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
                     layertext("For speedruns!", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 25, text_str);
                     layertext(&format![" for seed: {}", n],BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST + 1, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, text_str);
                     if game_state.song_timer % 30 >= 15 {
-                        unsafe {*DRAW_COLORS = 0x0004}
+                        // unsafe {*DRAW_COLORS = 0x0004}
 
-                        text_bytes(&[b'\x81'], BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35);
+                        // text_bytes(&[b'\x81'], BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35);
+                        text_str("x", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35);
+
                     }
                 },
             }

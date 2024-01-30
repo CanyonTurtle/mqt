@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
-use kittygame::{update, spritesheet::{BlitSubFlags, Spritesheet}};
+use kittygame::{update, spritesheet::{BlitSubFlags, Spritesheet, BUTTON_1, BUTTON_2, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT, BUTTON_UP}};
 
 
 const KITTY_SS_COLORS: [[u8; 4]; 5] = [
@@ -69,13 +69,18 @@ async fn main() {
 
     const MAX_SCREEN_DIM: f32 = 400.;
 
-    let kitty_bg_texture: Texture2D = load_texture("kittygame.png").await.unwrap();
+    // let kitty_bg_texture: Texture2D = load_texture("kittygame.png").await.unwrap();
     let kitty_ss_texture: Texture2D = load_texture("kitty-ss.png").await.unwrap();
     let kitty_title_texture: Texture2D = load_texture("kitty_title.png").await.unwrap();
 
     // let font = load_ttf_font("SRAFreePixelFontPack/PixelSmall.ttf")
 
-    let mut font = load_ttf_font("Pixeloid_Font_0_5/TrueType (.ttf)/PixeloidSans.ttf")
+    // const FONT_HEIGHT: u16 = 9;
+    // let mut font = load_ttf_font("Pixeloid_Font_0_5/TrueType (.ttf)/PixeloidSans.ttf")
+
+    const FONT_HEIGHT: u16 = 8;
+
+    let mut font = load_ttf_font("PressStart2P-Regular.ttf")
         .await
         .unwrap();
 
@@ -89,7 +94,7 @@ async fn main() {
 
     
 
-    kitty_bg_texture.set_filter(FilterMode::Nearest);
+    // kitty_bg_texture.set_filter(FilterMode::Nearest);
     kitty_ss_texture.set_filter(FilterMode::Nearest);
     kitty_title_texture.set_filter(FilterMode::Nearest);
 
@@ -98,12 +103,12 @@ async fn main() {
     let mut last_sh = screen_height();
     let mut last_sw = screen_width();
 
-    let mut fps = 0;
+    // let mut fps = 0;
     let mut i = 0;
     loop {
         i += 1;
         if i % 15 == 0 {
-            fps = get_fps();
+            // fps = get_fps();
             i = 0;
             
         }
@@ -180,18 +185,18 @@ async fn main() {
         // );
         
         
-        draw_text_ex(
-            &format!["{}", fps],
-            10.,
-            10.,
-            TextParams {
-                font_size: 9,
-                font: Some(&font),
-                font_scale: 1.,
-                color: DEFAULT_COLOR_PALLETTE[0],
-                ..Default::default()
-            },
-        );
+        // draw_text_ex(
+        //     &format!["{}", fps],
+        //     10.,
+        //     10.,
+        //     TextParams {
+        //         font_size: 9,
+        //         font: Some(&font),
+        //         font_scale: 1.,
+        //         color: DEFAULT_COLOR_PALLETTE[0],
+        //         ..Default::default()
+        //     },
+        // );
 
         // for i in 0..5 {
         //     for j in 0..5 {
@@ -240,13 +245,17 @@ async fn main() {
             draw_line(x1 as f32, y1 as f32, x2 as f32, y2 as f32, 1., WHITE);
         };
 
+        let rect = |x1: i32, y1: i32, w: u32, h: u32| {
+            draw_rectangle_lines(x1 as f32, y1 as f32, w as f32, h as f32, 1., WHITE)
+        };
+
         let text_str = |t: &str, x: i32, y: i32| {
             draw_text_ex(
                 t,
                 x as f32,
-                y as f32,
+                (y + FONT_HEIGHT as i32) as f32,
                 TextParams {
-                    font_size: 9,
+                    font_size: FONT_HEIGHT,
                     font: Some(&font),
                     font_scale: 1.,
                     color: DEFAULT_COLOR_PALLETTE[0],
@@ -255,23 +264,33 @@ async fn main() {
             );
         };
 
-        let text_bytes = |_t: &[u8], _x: i32, _y: i32| {
-            // draw_text_ex(
-            //     t.into(),
-            //     x as f32,
-            //     y as f32,
-            //     TextParams {
-            //         font_size: 9,
-            //         font: Some(&font),
-            //         font_scale: 1.,
-            //         color: DEFAULT_COLOR_PALLETTE[0],
-            //         ..Default::default()
-            //     },
-            // );
-        };
+        let mut btns_pressed_this_frame = [0; 4];
+        let mut gamepads = [0; 4];
+        
 
-        update(&blit_sub, &line, &text_str, &text_bytes, internal_width as u32, internal_height as u32);
 
+        let mut keymap = HashMap::with_capacity(6);
+        keymap.insert(KeyCode::Z, BUTTON_1);
+        keymap.insert(KeyCode::X, BUTTON_2);
+        keymap.insert(KeyCode::Space, BUTTON_1);
+
+        keymap.insert(KeyCode::Left, BUTTON_LEFT);
+        keymap.insert(KeyCode::Right, BUTTON_RIGHT);
+        keymap.insert(KeyCode::Up, BUTTON_UP);
+        keymap.insert(KeyCode::Down, BUTTON_DOWN);
+
+        for (keycode, input) in &keymap {
+            if is_key_pressed(*keycode) {
+                btns_pressed_this_frame[0] |= input; 
+            }
+        }
+        for (keycode, input) in &keymap {
+            if is_key_down(*keycode) {
+                gamepads[0] |= input; 
+            }
+        }  
+
+        update(&blit_sub, &line, &rect, &text_str, internal_width as u32, internal_height as u32, &btns_pressed_this_frame, &gamepads);
         next_frame().await
     }
 }

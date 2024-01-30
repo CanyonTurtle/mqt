@@ -1,4 +1,4 @@
-use crate::wasm4::*;
+// use crate::wasm4::*;
 
 pub struct Song {
     pub name: &'static str,
@@ -127,9 +127,9 @@ pub fn play_bgm(timer: u32, song: &Song) {
     let time_signature_numerator: u32 = song.time_signature.0 as u32*song.measure_length as u32;
     let time_signature_denominator: u32 = song.time_signature.1 as u32*song.measure_length as u32;
     if timer % time_signature_numerator == 0 {
-        tone(song.scale[freq1] as u32, song.f1_note_duration as u32, 20, TONE_PULSE1);
+        // tone(song.scale[freq1] as u32, song.f1_note_duration as u32, 20, TONE_PULSE1);
     }
     if timer % time_signature_denominator == 0 && (freq2 as i32).abs_diff(freq1 as i32) > 1 {
-        tone(song.scale[freq2] as u32, song.f2_note_duration as u32, 20, TONE_PULSE2);
+        // tone(song.scale[freq2] as u32, song.f2_note_duration as u32, 20, TONE_PULSE2);
     }
 }

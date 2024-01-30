@@ -20,7 +20,7 @@ use super::{
 use crate::game::ability_cards::AbilityCardStack;
 use crate::game::game_map::MAP_TILESETS;
 use crate::game::music::SONGS;
-use crate::kitty_ss;
+// use crate::kitty_ss;
 use crate::spritesheet::{self, KITTY_SPRITESHEET_PALETTES};
 
 // Games can either be fixed-seed and timed for speedrunning, or random.
@@ -42,11 +42,9 @@ pub struct GameSettings {
 }
 
 
-pub struct GameState<'a> {
+pub struct GameState {
     pub players: [OptionallyEnabledPlayer; 4],
     pub npcs: Vec<Character>,
-    pub spritesheet: &'a [u8],
-    pub spritesheet_stride: usize,
     pub background_tiles: &'static Vec<spritesheet::Sprite>,
     pub map: GameMap,
     pub camera: Camera,
@@ -71,8 +69,8 @@ pub struct GameState<'a> {
     pub speedrun_timer_msec: u32,
 }
 
-impl GameState<'static> {
-    pub fn new() -> GameState<'static> {
+impl GameState {
+    pub fn new() -> GameState {
         let characters = [
             OptionallyEnabledPlayer::Enabled(Player {
                 character: Character::new(spritesheet::PresetSprites::MainCat),
@@ -88,9 +86,6 @@ impl GameState<'static> {
         GameState {
             players: characters,
             npcs: Vec::new(),
-
-            spritesheet: kitty_ss::KITTY_SPRITESHEET,
-            spritesheet_stride: spritesheet::KITTY_SPRITESHEET_STRIDE as usize,
             background_tiles: spritesheet::Sprite::get_spritesheet(),
             map: GameMap::create_map(),
             camera: Camera {

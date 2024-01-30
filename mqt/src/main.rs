@@ -166,24 +166,24 @@ async fn main() {
             set_camera(&cam);
         }
 
-        draw_texture(&kitty_title_texture, 10., 30., WHITE);
+        // draw_texture(&kitty_title_texture, 10., 30., WHITE);
 
-        draw_texture_ex(
-            &kitty_ss_texture,
-            10.,
-            80.,
-            WHITE,
-            DrawTextureParams {
-                source: Some(Rect::new(16., 56., 16., 8.)),
-                ..Default::default()
-            },
-        );
+        // draw_texture_ex(
+        //     &kitty_ss_texture,
+        //     10.,
+        //     80.,
+        //     WHITE,
+        //     DrawTextureParams {
+        //         source: Some(Rect::new(16., 56., 16., 8.)),
+        //         ..Default::default()
+        //     },
+        // );
         
         
         draw_text_ex(
-            &format!["CanyonTurtle: {}", fps],
+            &format!["{}", fps],
             10.,
-            20.,
+            10.,
             TextParams {
                 font_size: 9,
                 font: Some(&font),
@@ -213,7 +213,7 @@ async fn main() {
         
         //pub type BlitSubFunc = fn(Spritesheet, i32, i32, u32, u32, u32, u32, u32, BlitSubFlags);
 
-        let blit_sub = |spritesheet: Spritesheet, x: i32, y: i32, src_x: u32, src_y: u32, w: u32, h: u32, flags: BlitSubFlags| {
+        let blit_sub = |spritesheet: Spritesheet, x: i32, y: i32, w: u32, h: u32, src_x: u32, src_y: u32, flags: BlitSubFlags| {
             draw_texture_ex(
                 match spritesheet {
                     Spritesheet::Main => &kitty_ss_texture,
@@ -236,7 +236,41 @@ async fn main() {
             )
         };
 
-        update(&blit_sub);
+        let line = |x1: i32, y1: i32, x2: i32, y2: i32| {
+            draw_line(x1 as f32, y1 as f32, x2 as f32, y2 as f32, 1., WHITE);
+        };
+
+        let text_str = |t: &str, x: i32, y: i32| {
+            draw_text_ex(
+                t,
+                x as f32,
+                y as f32,
+                TextParams {
+                    font_size: 9,
+                    font: Some(&font),
+                    font_scale: 1.,
+                    color: DEFAULT_COLOR_PALLETTE[0],
+                    ..Default::default()
+                },
+            );
+        };
+
+        let text_bytes = |_t: &[u8], _x: i32, _y: i32| {
+            // draw_text_ex(
+            //     t.into(),
+            //     x as f32,
+            //     y as f32,
+            //     TextParams {
+            //         font_size: 9,
+            //         font: Some(&font),
+            //         font_scale: 1.,
+            //         color: DEFAULT_COLOR_PALLETTE[0],
+            //         ..Default::default()
+            //     },
+            // );
+        };
+
+        update(&blit_sub, &line, &text_str, &text_bytes, internal_width as u32, internal_height as u32);
 
         next_frame().await
     }

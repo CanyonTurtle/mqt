@@ -1090,7 +1090,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
             }
             
 
-            render_title(&game_state, sw as i32 / 2 - 60, TITLE_Y, blit_sub);
+            render_title(&game_state, sw as i32 / 2 - 76, TITLE_Y, blit_sub);
             game_state.rng.next_for_input();
             
             // trace("updated positions");
@@ -1227,7 +1227,7 @@ pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, text_str: &TextStrFunc, t
             // Draw box around selection
             // draw_modal_bg(&AbsoluteBoundingBox{x: selected_box_dims.0 as f32, y: selected_box_dims.1 as f32, width: selected_box_dims.2 as f32, height: selected_box_dims.3 as f32}, 1);
 
-            render_title(&game_state, sw as i32 / 2 - 60, TITLE_Y - 8, blit_sub);
+            render_title(&game_state, sw as i32 / 2 - 76, TITLE_Y - 8, blit_sub);
             
         }
     }

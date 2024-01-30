@@ -1,0 +1,16 @@
+[package]
+name = "mqt"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+macroquad = "0.4"
+
+[package.metadata.android.activity_attributes]
+"android:exported" =  "true"
+
+[package.metadata.android]
+assets = "assets/"
+build_targets = ["armv7-linux-androideabi"]

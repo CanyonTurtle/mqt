@@ -1,16 +1,13 @@
-[package]
-name = "mqt"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "mqt",
+    "kittygame"
+]
+resolver = "2"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-macroquad = "0.4"
-
-[package.metadata.android.activity_attributes]
-"android:exported" =  "true"
-
-[package.metadata.android]
-assets = "assets/"
-build_targets = ["armv7-linux-androideabi"]
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1   # Reduce number of codegen units to increase optimizations
+panic = 'abort'     # Abort on panic
+strip = true        # Strip symbols from binary*

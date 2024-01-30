@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.4"
+kittygame = { path = "../kittygame" }
 
 [package.metadata.android.activity_attributes]
 "android:exported" =  "true"

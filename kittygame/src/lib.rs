@@ -8,7 +8,7 @@
 #[cfg(feature = "buddy-alloc")]
 mod alloc;
 mod kitty_ss;
-mod spritesheet;
+pub mod spritesheet;
 
 mod wasm4;
 
@@ -25,6 +25,7 @@ use game::{
     music::{play_bgm, SONGS}, game_map::MAP_TILESETS, cloud::Cloud,
 };
 
+use spritesheet::{BlitSubFlags, BlitSubFunc, Spritesheet};
 use title_ss::{OUTPUT_ONLINEPNGTOOLS_WIDTH, OUTPUT_ONLINEPNGTOOLS_HEIGHT, OUTPUT_ONLINEPNGTOOLS_FLAGS};
 mod game;
 use wasm4::*;
@@ -40,7 +41,7 @@ use crate::{
 };
 
 /// draw the tiles in the map, relative to the camera.
-fn drawmap(game_state: &GameState) {
+fn drawmap(game_state: &GameState, blit_sub: &BlitSubFunc) {
     let map = &game_state.map;
     let camera = &game_state.camera;
 
@@ -66,15 +67,14 @@ fn drawmap(game_state: &GameState) {
 
                         if x_loc >= 0 && x_loc < 160 && y_loc > 0 && y_loc < 160 {
                             blit_sub(
-                                &game_state.spritesheet,
+                                Spritesheet::Main,
                                 x_loc,
                                 y_loc,
                                 game_state.background_tiles[tile_i].frames[0].width as u32,
                                 game_state.background_tiles[tile_i].frames[0].height as u32,
                                 game_state.background_tiles[tile_i].frames[0].start_x as u32,
                                 game_state.background_tiles[tile_i].frames[0].start_y as u32,
-                                (game_state.spritesheet_stride) as u32,
-                                spritesheet::KITTY_SPRITESHEET_FLAGS,
+                                BlitSubFlags{flip_x: false, flip_y: false},
                             );
                         }
                     }
@@ -255,9 +255,10 @@ fn render_title(game_state: &GameState, y: i32) {
     unsafe { *DRAW_COLORS = spritesheet::KITTY_SPRITESHEET_DRAW_COLORS }
 }
 
+
 /// Main loop that runs every frame. Progress the game state and render.
 #[no_mangle]
-fn update() {
+pub fn update(blit_sub: &BlitSubFunc) {
     let mut game_state: &mut GameState;
 
     // -------- INITIALIZE GAME STATE IF NEEDED ----------
@@ -529,7 +530,7 @@ fn update() {
 
  
     // ------ RENDER THE MAP -----------
-    drawmap(&game_state);
+    drawmap(&game_state, blit_sub);
 
     // UPDATE CLOUDS
     Cloud::update_clouds(&mut game_state.clouds);
@@ -539,43 +540,34 @@ fn update() {
         let cam: &Camera = &game_state.camera;
         let cloud_sprite: &spritesheet::Sprite = spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Cloud);
         blit_sub(
-            &game_state.spritesheet,
+            Spritesheet::Main,
             (cloud.x - cam.current_viewing_x_offset) as i32,
             (cloud.y - cam.current_viewing_y_offset) as i32,
             cloud_sprite.frames[0].width as u32,
             cloud_sprite.frames[0].height as u32,
             cloud_sprite.frames[0].start_x as u32,
             cloud_sprite.frames[0].start_y as u32,
-            game_state.spritesheet_stride as u32,
-            spritesheet::KITTY_SPRITESHEET_FLAGS
-                | if cloud.vx <= 0.0 {
-                    0
-                } else {
-                    BLIT_FLIP_X
-                }
-                | if cloud.vy >= 0.0 {
-                    0
-                } else {
-                    BLIT_FLIP_Y
-                }
+            BlitSubFlags { 
+                flip_x: cloud.vx > 0.,
+                flip_y: cloud.vy < 0.
+            }
         );
     }
 
     // just draw a spriteframe at a location. Put a colored layer behind it, like layertext() does.
-    fn draw_spriteframe (spritesheet: &[u8], spriteframe: &spritesheet::SpriteFrame, spritesheet_stride: u32, x: i32, y: i32) {
+    fn draw_spriteframe (spriteframe: &spritesheet::SpriteFrame, x: i32, y: i32, blit_sub: &BlitSubFunc) {
         let cf = spriteframe;
         for (xx, yy, colors) in [(x, y, 0x1111), (x+1, y+1, 0x1111), (x, y, spritesheet::KITTY_SPRITESHEET_DRAW_COLORS)] {
             unsafe {*DRAW_COLORS = colors}
             blit_sub(
-                spritesheet,
+                Spritesheet::Main,
                 xx,
                 yy,
                 cf.width as u32,
                 cf.height as u32,
                 cf.start_x as u32,
                 cf.start_y as u32,
-                spritesheet_stride as u32,
-                spritesheet::KITTY_SPRITESHEET_FLAGS
+                BlitSubFlags { flip_x: false, flip_y: false }
             );
         }
         
@@ -649,10 +641,10 @@ fn update() {
                                 match p.icon {
                                     PopupIcon::None => {},
                                     PopupIcon::Clock => {
-                                        draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], game_state.spritesheet_stride as u32, dx, dy-1)
+                                        draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], dx, dy-1, blit_sub)
                                     }
                                     PopupIcon::CatHead => {
-                                        draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], game_state.spritesheet_stride as u32, dx+1, dy+1)
+                                        draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], dx+1, dy+1, blit_sub)
                                     },
                                     PopupIcon::DownArrow => {
                                         text([b'\x87'], dx+40, dy);
@@ -768,15 +760,14 @@ fn update() {
                             Some(c) => {
                                 // trace(&format!["{}", i]);
                                 blit_sub(
-                                    &game_state.spritesheet,
+                                    Spritesheet::Main,
                                     c.x_pos as i32,
                                     c.y_pos as i32,
                                     c.sprite.frames[0].width as u32,
                                     c.sprite.frames[0].height as u32,
                                     c.sprite.frames[0].start_x as u32,
                                     c.sprite.frames[0].start_y as u32,
-                                    (game_state.spritesheet_stride) as u32,
-                                    spritesheet::KITTY_SPRITESHEET_FLAGS,
+                                    BlitSubFlags { flip_x: false, flip_y: false },
                                 );
                             },
                             None => {},
@@ -887,7 +878,7 @@ fn update() {
                                     modal_text("Start!", 16, 22);
                                     modal_text(&format!["+{}", game_state.countdown_and_score_bonus / 60], 33, 35);
                                     let (xx, yy) = modal_offs(25, 34);
-                                    draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], game_state.spritesheet_stride as u32, xx, yy);
+                                    draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], xx, yy, blit_sub);
 
                                     let mut start_normal_play = false;
                                     if text_timer > 100 {
@@ -969,10 +960,10 @@ fn update() {
                                         text([ b'\x81'], xx+79, yy+126);
                                     }
                                     
-                                    draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], game_state.spritesheet_stride as u32, xx+20, yy+62);
+                                    draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], xx+20, yy+62, blit_sub);
 
                                     modal_text(" = # kittes", 28, 62);
-                                    draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], game_state.spritesheet_stride as u32, xx+20, yy+78);
+                                    draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], xx+20, yy+78, blit_sub);
 
                                     modal_text(" = time left", 28, 78);
                                     match btn_pressed {
@@ -1063,8 +1054,8 @@ fn update() {
                 layertext(&score_text, 60, BOTTOM_UI_TEXT_Y);
                 layertext(found_kitties_text, 9, TOP_UI_TEXT_Y);
 
-                draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], game_state.spritesheet_stride as u32, 48, TOP_UI_TEXT_Y - 1);
-                draw_spriteframe(&game_state.spritesheet,  &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], game_state.spritesheet_stride as u32, 1, TOP_UI_TEXT_Y + 1);
+                draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], 48, TOP_UI_TEXT_Y - 1, blit_sub);
+                draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], 1, TOP_UI_TEXT_Y + 1, blit_sub);
 
                 
             }

@@ -2,6 +2,9 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
+use kittygame::{update, spritesheet::{BlitSubFlags, Spritesheet}};
+
+
 const KITTY_SS_COLORS: [[u8; 4]; 5] = [
     [0xee, 0xc3, 0x9a, 0xff], // main kitty color
     [0xff, 0x67, 0xd3, 0xff], // pig / lizard color
@@ -190,24 +193,50 @@ async fn main() {
             },
         );
 
-        for i in 0..5 {
-            for j in 0..5 {
-                let (x, y) = (10. + i as f32 * 60., 20. + j as f32 * 60.);
-                draw_text_ex(
-                    &format!["({}, {})", x, y],
-                    x,
-                    y,
-                    TextParams {
-                        font_size: 9,
-                        font: Some(&font),
-                        font_scale: 1.,
-                        color: DEFAULT_COLOR_PALLETTE[0],
-                        ..Default::default()
-                    },
-                );
-            }
-        }
+        // for i in 0..5 {
+        //     for j in 0..5 {
+        //         let (x, y) = (10. + i as f32 * 60., 20. + j as f32 * 60.);
+        //         draw_text_ex(
+        //             &format!["({}, {})", x, y],
+        //             x,
+        //             y,
+        //             TextParams {
+        //                 font_size: 9,
+        //                 font: Some(&font),
+        //                 font_scale: 1.,
+        //                 color: DEFAULT_COLOR_PALLETTE[0],
+        //                 ..Default::default()
+        //             },
+        //         );
+        //     }
+        // }
         
+        //pub type BlitSubFunc = fn(Spritesheet, i32, i32, u32, u32, u32, u32, u32, BlitSubFlags);
+
+        let blit_sub = |spritesheet: Spritesheet, x: i32, y: i32, src_x: u32, src_y: u32, w: u32, h: u32, flags: BlitSubFlags| {
+            draw_texture_ex(
+                match spritesheet {
+                    Spritesheet::Main => &kitty_ss_texture,
+                    Spritesheet::Title => &kitty_title_texture,
+                },
+                x as f32,
+                y as f32,
+                WHITE,
+                DrawTextureParams{
+                    source: Some(Rect{
+                        x: src_x as f32,
+                        y: src_y as f32,
+                        w: w as f32,
+                        h: h as f32
+                    }),
+                    flip_x: flags.flip_x,
+                    flip_y: flags.flip_y,
+                    ..Default::default()
+                }
+            )
+        };
+
+        update(&blit_sub);
 
         next_frame().await
     }

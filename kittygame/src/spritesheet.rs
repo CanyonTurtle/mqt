@@ -97,6 +97,19 @@ pub const KITTY_SPRITESHEET_PALETTES: [[u32; 4]; 9] = [
 
 pub const KITTY_SPRITESHEET_FLAGS: u32 = 1; // BLIT_2BPP
 
+/// Which spritesheet to render with.
+pub enum Spritesheet {
+    Main, // pull from the main spritesheet.
+    Title, // pull from the title 
+}
+
+pub struct BlitSubFlags {
+    pub flip_x: bool,
+    pub flip_y: bool,
+}
+
+pub type BlitSubFunc<'a> = dyn Fn(Spritesheet, i32, i32, u32, u32, u32, u32, BlitSubFlags) + 'a;
+
     
 
 #[derive(Clone, Copy)]

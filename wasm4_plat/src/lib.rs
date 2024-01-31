@@ -5,7 +5,8 @@ mod wasm4;
 mod kitty_ss;
 mod title_ss;
 
-use kittygame::spritesheet::{BlitSubFlags, Spritesheet, KITTY_SPRITESHEET_FLAGS};
+use kittygame::multiplatform_defs::{BlitSubFlags, Spritesheet};
+use kittygame::spritesheet::KITTY_SPRITESHEET_FLAGS;
 use title_ss::OUTPUT_ONLINEPNGTOOLS_FLAGS;
 use wasm4::*;
 

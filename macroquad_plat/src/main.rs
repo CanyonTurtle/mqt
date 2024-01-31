@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
-use kittygame::{kittygame_update, spritesheet::{BlitSubFlags, Spritesheet, BUTTON_1, BUTTON_2, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT, BUTTON_UP}};
+use kittygame::{kittygame_update, multiplatform_defs::{BlitSubFlags, Spritesheet, BUTTON_1, BUTTON_2, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT, BUTTON_UP}};
 
 
 const KITTY_SS_COLORS: [[u8; 4]; 5] = [

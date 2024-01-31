@@ -1,1 +1,1 @@
-cargo build --release --package cart --config .cargo/config.wasm4.toml
+cargo build --release --package cart --config .cargo/config.wasm4.toml && w4 run target/wasm32-unknown-unknown/release/cart.wasm

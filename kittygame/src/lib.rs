@@ -11,6 +11,8 @@ mod alloc;
 // mod kitty_ss;
 pub mod spritesheet;
 
+pub mod multiplatform_defs;
+
 //#[cfg(feature = "wasm-4")]
 // mod wasm4;
 
@@ -26,8 +28,8 @@ use game::{
     menus::GameMode,
     music::{play_bgm, SONGS}, game_map::MAP_TILESETS, cloud::Cloud,
 };
+use multiplatform_defs::{BlitSubFlags, BlitSubFunc, LineFunc, RectFunc, Spritesheet, TextStrFunc};
 
-use spritesheet::{BlitSubFlags, BlitSubFunc, LineFunc, RectFunc, Spritesheet, TextStrFunc};
 // use title_ss::{OUTPUT_ONLINEPNGTOOLS_WIDTH, OUTPUT_ONLINEPNGTOOLS_HEIGHT};
 
 const OUTPUT_ONLINEPNGTOOLS_WIDTH: u32 = 152;
@@ -39,8 +41,7 @@ mod game;
 use crate::{game::{
         collision::{get_bound_of_character, AbsoluteBoundingBox},
         entities::OptionallyEnabledPlayer,
-        menus::{Modal, NormalPlayModes, MenuTypes, SelectSetup, SelectMenuFocuses}, game_constants::{COUNTDOWN_TIMER_START, START_DIFFICULTY_LEVEL, MAJOR_VERSION, MINOR_VERSION, INCR_VERSION, FINAL_LEVEL}, popup_text::{PopTextRingbuffer, PopupIcon}, rng::{GameRng, Rng}, game_state::RunType,
-    }, spritesheet::{BUTTON_1, BUTTON_2, BUTTON_LEFT, BUTTON_RIGHT}};
+        menus::{Modal, NormalPlayModes, MenuTypes, SelectSetup, SelectMenuFocuses}, game_constants::{COUNTDOWN_TIMER_START, START_DIFFICULTY_LEVEL, MAJOR_VERSION, MINOR_VERSION, INCR_VERSION, FINAL_LEVEL}, popup_text::{PopTextRingbuffer, PopupIcon}, rng::{GameRng, Rng}, game_state::RunType,}, multiplatform_defs::{BUTTON_1, BUTTON_2, BUTTON_LEFT, BUTTON_RIGHT}};
 
 /// draw the tiles in the map, relative to the camera.
 fn drawmap(game_state: &GameState, blit_sub: &BlitSubFunc, sw: u32, sh: u32) {

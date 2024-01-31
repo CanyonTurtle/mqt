@@ -49,6 +49,8 @@
             elem.webkitRequestFullscreen();
           } else if (elem.msRequestFullscreen) { /* IE11 */
             elem.msRequestFullscreen();
+          } else if (elem.webkitEnterFullscreen) { /* Safari */
+            elem.webkitEnterFullscreen();
           }
           <!-- fb.getRootNode().removeChild(fb) -->
         }

@@ -230,7 +230,7 @@ fn layertext(t: &str, x: i32, y: i32, text_str: &TextStrFunc) {
     text_str(t, x + 1, y + 1, &DrawColor::Background);
     // unsafe { *DRAW_COLORS = 0x0002 }
 
-    text_str(t, x, y, &DrawColor::MainKitty);
+    text_str(t, x, y, &DrawColor::Foreground);
 }
 
 const TIMER_INTERACTIVE_START: u32 = 100;
@@ -590,7 +590,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                 &AbsoluteBoundingBox {
                     x: -1.0,
                     y: 0.0,
-                    width: 162.0,
+                    width: sw as f32 + 2.0,
                     height: 10.0,
                 },
                 0,
@@ -602,8 +602,8 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
             draw_modal_bg(
                 &AbsoluteBoundingBox {
                     x: -1.0,
-                    y: 150.0,
-                    width: 162.0,
+                    y: sh as f32 - 10.,
+                    width: sw as f32 + 2.0,
                     height: 10.0,
                 },
                 0,
@@ -837,7 +837,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                         
                         let modal_text = |st: &str, x, y| {
                             // unsafe {*DRAW_COLORS = 0x0002}
-                            text_str(st, m.actual_position.x as i32 + x, m.actual_position.y as i32 + y, &DrawColor::MainKitty);
+                            text_str(st, m.actual_position.x as i32 + x, m.actual_position.y as i32 + y, &DrawColor::Foreground);
                         };
 
                         let modal_offs = |x: i32, y: i32| {
@@ -1068,8 +1068,8 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
 
 
                 // DRAW SCORE, LEVEL, # KITTIES during normal play
-                layertext(world_level_text, 0, sh as i32 - BOTTOM_UI_TEXT_Y_OFFSET, text_str);
-                layertext(&score_text, 60, sh as i32 - BOTTOM_UI_TEXT_Y_OFFSET, text_str);
+                layertext(world_level_text, 0, sh as i32 + BOTTOM_UI_TEXT_Y_OFFSET, text_str);
+                layertext(&score_text, 60, sh as i32 + BOTTOM_UI_TEXT_Y_OFFSET, text_str);
                 layertext(found_kitties_text, 9, TOP_UI_TEXT_Y, text_str);
 
                 draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::Clock).frames[0], 48, TOP_UI_TEXT_Y - 1, blit_sub);

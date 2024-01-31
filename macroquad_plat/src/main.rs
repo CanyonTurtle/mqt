@@ -29,6 +29,14 @@ const TITLE_COLOR_PALLETE: [[u8; 4]; 5] = [
     [0x00, 0x00, 0x00, 0x00], // transparent
 ];
 
+const GAMEPAD_COLOR_PALLETE: [[u8; 4]; 5] = [
+    [0xac, 0x32, 0x32, 0xff], // main letter color
+    [0x22, 0x20, 0x34, 0xff], // letter backing color (maps to transparent)
+    [0x12, 0x00, 0x00, 0x00], // (unused)
+    [0x34, 0x00, 0x00, 0x00], // (unused)
+    [0x00, 0x00, 0x00, 0x00], // (unused)
+];
+
 /// Convert colors from src to mapped, when they occur in an image.
 fn build_colormap(src_colors: [[u8; 4]; 5], mapped_colors: [Color; 5]) -> HashMap<[u8; 4], Color> {
     let mut colormap = HashMap::new();
@@ -65,6 +73,13 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
+    enum InputMode {
+        KeyboardDetected,
+        Touchpad
+    }
+
+    let mut current_input_mode = InputMode::Touchpad;
+
     let color_palette = RefCell::new(DEFAULT_COLOR_PALLETTE);
 
     set_pc_assets_folder("assets");
@@ -74,6 +89,7 @@ async fn main() {
     // let kitty_bg_texture: Texture2D = load_texture("kittygame.png").await.unwrap();
     let kitty_ss_texture: Texture2D = load_texture("kitty-ss.png").await.unwrap();
     let kitty_title_texture: Texture2D = load_texture("kitty_title.png").await.unwrap();
+    let gamepad_texture: Texture2D = load_texture("gamepad.png").await.unwrap();
 
     // let font = load_ttf_font("SRAFreePixelFontPack/PixelSmall.ttf")
 
@@ -93,14 +109,17 @@ async fn main() {
     let recolored_ss = recolor_spritesheet(&original_image, build_colormap(KITTY_SS_COLORS, *color_palette.borrow()));
     kitty_ss_texture.update(&recolored_ss);
     
-    let recolored_title = recolor_spritesheet(&kitty_title_texture.get_texture_data(), build_colormap(TITLE_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE));
+    let recolored_title = recolor_spritesheet(&kitty_title_texture.get_texture_data(), build_colormap(TITLE_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE.clone()));
     kitty_title_texture.update(&recolored_title);
 
-    
+    let recolored_gamepad = recolor_spritesheet(&gamepad_texture.get_texture_data(), build_colormap(GAMEPAD_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE.clone()));
+    gamepad_texture.update(&recolored_gamepad);
 
     // kitty_bg_texture.set_filter(FilterMode::Nearest);
     kitty_ss_texture.set_filter(FilterMode::Nearest);
     kitty_title_texture.set_filter(FilterMode::Nearest);
+    gamepad_texture.set_filter(FilterMode::Nearest);
+
 
     // we only want to create a new texture (and image) when necessary, because
     // it's expensive. So track when the screen changes dimensions.
@@ -351,6 +370,7 @@ async fn main() {
 
         for (keycode, input) in &keymap {
             if is_key_pressed(*keycode) {
+                current_input_mode = InputMode::KeyboardDetected;
                 btns_pressed_this_frame[0] |= input; 
             }
         }
@@ -360,7 +380,96 @@ async fn main() {
             }
         }  
 
+        const ARROW_RECT: Rect = Rect{
+            x: 32.,y: 0.,w: 35.,h: 32.
+        };
+
+        
+        const BUTTON_RECT: Rect = Rect{
+            x: 0., y: 0., w: 29., h: 29.
+        };
+
+        let left_arrow_pos: Vec2 = Vec2{x: 10., y: internal_height as f32 - 40.};
+        let right_arrow_pos: Vec2 = Vec2{x: 50., y: internal_height as f32 - 40.};
+        let x_button_pos: Vec2 = Vec2{x: internal_width as f32 - 40., y: internal_height as f32 - 50.};
+        let z_button_pos: Vec2 = Vec2{x: internal_width as f32 - 70., y: internal_height as f32 - 35.};
+
+        let touch_zones: [Rect; 4] = [
+            ARROW_RECT.offset(left_arrow_pos),
+            ARROW_RECT.offset(right_arrow_pos),
+            BUTTON_RECT.offset(z_button_pos),
+            BUTTON_RECT.offset(x_button_pos),
+        ];
+        let touch_buttons: [u8; 4] = [BUTTON_LEFT, BUTTON_RIGHT, BUTTON_1, BUTTON_2];
+
+
+
+        for touch in touches_local() {
+            let position_internal = Vec2{
+                x: ((touch.position.x * 0.5) + 0.5) * internal_width as f32,
+                y: ((touch.position.y * 0.5) + 0.5) * internal_height as f32,
+            };
+            match touch.phase {
+                TouchPhase::Started => {
+                    for i in 0..touch_zones.len() {
+                        let touch_zone = touch_zones[i];
+                        let touch_button = touch_buttons[i];
+                        
+                        if touch_zone.contains(position_internal) {
+                            btns_pressed_this_frame[0] |= touch_button;
+                            trace!("hit");
+                        }
+                    }
+                },
+                TouchPhase::Ended => {
+
+                },
+                _ => {
+                    for i in 0..touch_zones.len() {
+                        let touch_zone = touch_zones[i];
+                        let touch_button = touch_buttons[i];
+                        if touch_zone.contains(position_internal) {
+                            gamepads[0] |= touch_button;
+                        }
+                    }
+                },
+            }
+        }
+
         kittygame_update(&blit_sub, &line, &rect, &text_str, &mut switch_palette, internal_width as u32, internal_height as u32, &btns_pressed_this_frame, &gamepads);
+
+        match current_input_mode {
+            InputMode::KeyboardDetected => {},
+            InputMode::Touchpad => {
+
+
+
+
+                // left arrow
+                draw_texture_ex(&gamepad_texture, left_arrow_pos.x, left_arrow_pos.y, WHITE, DrawTextureParams{
+                    source: Some(ARROW_RECT),
+                    flip_x: true,
+                    ..Default::default()
+                });
+                // right arrow
+                draw_texture_ex(&gamepad_texture, right_arrow_pos.x, right_arrow_pos.y, WHITE, DrawTextureParams{
+                    source: Some(ARROW_RECT),
+                    ..Default::default()
+                });
+
+                // x
+                draw_texture_ex(&gamepad_texture, x_button_pos.x, x_button_pos.y, WHITE, DrawTextureParams{
+                    source: Some(BUTTON_RECT),
+                    ..Default::default()
+                });
+
+                // z
+                draw_texture_ex(&gamepad_texture, z_button_pos.x, z_button_pos.y, WHITE, DrawTextureParams{
+                    source: Some(BUTTON_RECT),
+                    ..Default::default()
+                });
+            },
+        }
         next_frame().await
     }
 }

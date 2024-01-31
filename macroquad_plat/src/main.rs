@@ -380,12 +380,13 @@ async fn main() {
             }
         }  
 
-        const ARROW_RECT: Rect = Rect{
+        /// location of arrow on the spritesheet.
+        const ARROW_SPRITE_RECT: Rect = Rect{
             x: 32.,y: 0.,w: 35.,h: 32.
         };
 
-        
-        const BUTTON_RECT: Rect = Rect{
+        /// Location of button on the spritesheet.
+        const BUTTON_SPRITE_RECT: Rect = Rect{
             x: 0., y: 0., w: 29., h: 29.
         };
 
@@ -395,10 +396,10 @@ async fn main() {
         let z_button_pos: Vec2 = Vec2{x: internal_width as f32 - 70., y: internal_height as f32 - 35.};
 
         let touch_zones: [Rect; 4] = [
-            ARROW_RECT.offset(left_arrow_pos),
-            ARROW_RECT.offset(right_arrow_pos),
-            BUTTON_RECT.offset(z_button_pos),
-            BUTTON_RECT.offset(x_button_pos),
+            ARROW_SPRITE_RECT.offset(left_arrow_pos - Vec2{x: ARROW_SPRITE_RECT.x, y: ARROW_SPRITE_RECT.y}),
+            ARROW_SPRITE_RECT.offset(right_arrow_pos - Vec2{x: ARROW_SPRITE_RECT.x, y: ARROW_SPRITE_RECT.y}),
+            BUTTON_SPRITE_RECT.offset(z_button_pos - Vec2{x: BUTTON_SPRITE_RECT.x, y: BUTTON_SPRITE_RECT.y}),
+            BUTTON_SPRITE_RECT.offset(x_button_pos - Vec2{x: BUTTON_SPRITE_RECT.x, y: BUTTON_SPRITE_RECT.y}),
         ];
         let touch_buttons: [u8; 4] = [BUTTON_LEFT, BUTTON_RIGHT, BUTTON_1, BUTTON_2];
 
@@ -447,25 +448,25 @@ async fn main() {
 
                 // left arrow
                 draw_texture_ex(&gamepad_texture, left_arrow_pos.x, left_arrow_pos.y, WHITE, DrawTextureParams{
-                    source: Some(ARROW_RECT),
+                    source: Some(ARROW_SPRITE_RECT),
                     flip_x: true,
                     ..Default::default()
                 });
                 // right arrow
                 draw_texture_ex(&gamepad_texture, right_arrow_pos.x, right_arrow_pos.y, WHITE, DrawTextureParams{
-                    source: Some(ARROW_RECT),
+                    source: Some(ARROW_SPRITE_RECT),
                     ..Default::default()
                 });
 
                 // x
                 draw_texture_ex(&gamepad_texture, x_button_pos.x, x_button_pos.y, WHITE, DrawTextureParams{
-                    source: Some(BUTTON_RECT),
+                    source: Some(BUTTON_SPRITE_RECT),
                     ..Default::default()
                 });
 
                 // z
                 draw_texture_ex(&gamepad_texture, z_button_pos.x, z_button_pos.y, WHITE, DrawTextureParams{
-                    source: Some(BUTTON_RECT),
+                    source: Some(BUTTON_SPRITE_RECT),
                     ..Default::default()
                 });
             },

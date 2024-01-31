@@ -8,7 +8,7 @@
 #[cfg(feature = "buddy-alloc")]
 mod alloc;
 
-mod kitty_ss;
+// mod kitty_ss;
 pub mod spritesheet;
 
 //#[cfg(feature = "wasm-4")]
@@ -28,9 +28,13 @@ use game::{
 };
 
 use spritesheet::{BlitSubFlags, BlitSubFunc, LineFunc, RectFunc, Spritesheet, TextStrFunc};
-use title_ss::{OUTPUT_ONLINEPNGTOOLS_WIDTH, OUTPUT_ONLINEPNGTOOLS_HEIGHT};
+// use title_ss::{OUTPUT_ONLINEPNGTOOLS_WIDTH, OUTPUT_ONLINEPNGTOOLS_HEIGHT};
+
+const OUTPUT_ONLINEPNGTOOLS_WIDTH: u32 = 152;
+const OUTPUT_ONLINEPNGTOOLS_HEIGHT: u32 = 50;
+
 mod game;
-mod title_ss;
+// mod title_ss;
 
 use crate::{game::{
         collision::{get_bound_of_character, AbsoluteBoundingBox},
@@ -253,7 +257,7 @@ fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &BlitSubFunc) 
 
 /// Main loop that runs every frame. Progress the game state and render.
 #[no_mangle]
-pub fn update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc, text_str: &TextStrFunc, sw: u32, sh: u32, btns_pressed_this_frame: &[u8; 4], gamepads: &[u8; 4]) {
+pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc, text_str: &TextStrFunc, sw: u32, sh: u32, btns_pressed_this_frame: &[u8; 4], gamepads: &[u8; 4]) {
     let mut game_state: &mut GameState;
 
     // -------- INITIALIZE GAME STATE IF NEEDED ----------

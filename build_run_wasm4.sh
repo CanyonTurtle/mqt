@@ -1,0 +1,1 @@
+cargo build --release --package cart --config .cargo/config.wasm4.toml

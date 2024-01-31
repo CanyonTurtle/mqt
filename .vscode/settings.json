@@ -2,6 +2,7 @@
     "rust-analyzer.linkedProjects": [
         "./kittygame/Cargo.toml",
         "./kittygame/Cargo.toml",
-        "./kittygame/Cargo.toml"
+        "./kittygame/Cargo.toml",
+        "./macroquad_plat/Cargo.toml"
     ]
 }

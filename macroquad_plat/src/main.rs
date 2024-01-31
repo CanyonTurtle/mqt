@@ -5,7 +5,7 @@ use macroquad::prelude::*;
 use kittygame::{kittygame_update, multiplatform_defs::{BlitSubFlags, DrawColor, Pallette, Spritesheet, BUTTON_1, BUTTON_2, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT, BUTTON_UP}};
 
 
-const KITTY_SS_COLORS: [[u8; 4]; 5] = [
+const ORIGINAL_KITTY_SS_COLORS: [[u8; 4]; 5] = [
     [0xee, 0xc3, 0x9a, 0xff], // main kitty color
     [0xff, 0x67, 0xd3, 0xff], // pig / lizard color
     [0xff, 0xff, 0xff, 0xff], // foreground (tiles, cards)
@@ -21,7 +21,7 @@ const DEFAULT_COLOR_PALLETTE: [Color; 5] = [
     color_u8!(0x00, 0x00, 0x00, 0x00), // transparent
 ];
 
-const TITLE_COLOR_PALLETE: [[u8; 4]; 5] = [
+const ORIGINAL_TITLE_COLORS: [[u8; 4]; 5] = [
     [0xF9, 0xDF, 0xD1, 0xff], // main letter color
     [0xEB, 0x9F, 0x9E, 0xff], // letter backing color
     [0x12, 0x00, 0x00, 0x00], // transparent (unused)
@@ -29,7 +29,7 @@ const TITLE_COLOR_PALLETE: [[u8; 4]; 5] = [
     [0x00, 0x00, 0x00, 0x00], // transparent
 ];
 
-const GAMEPAD_COLOR_PALLETE: [[u8; 4]; 5] = [
+const ORIGINAL_GAMEPAD_COLORS: [[u8; 4]; 5] = [
     [0xac, 0x32, 0x32, 0xff], // main letter color
     [0x22, 0x20, 0x34, 0xff], // letter backing color (maps to transparent)
     [0x12, 0x00, 0x00, 0x00], // (unused)
@@ -73,6 +73,18 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
+    /// the first color is the foreground color, 
+    /// and the others are transparent.
+    fn construct_gamepad_colors(colors: [Color; 5]) -> [Color; 5] {
+        [
+            colors[0],
+            BLANK,
+            BLANK,
+            BLANK,
+            BLANK
+        ]
+    }
+
     enum InputMode {
         KeyboardDetected,
         Touchpad
@@ -106,14 +118,24 @@ async fn main() {
 
     let original_image = kitty_ss_texture.get_texture_data();
 
-    let recolored_ss = recolor_spritesheet(&original_image, build_colormap(KITTY_SS_COLORS, *color_palette.borrow()));
-    kitty_ss_texture.update(&recolored_ss);
-    
-    let recolored_title = recolor_spritesheet(&kitty_title_texture.get_texture_data(), build_colormap(TITLE_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE.clone()));
-    kitty_title_texture.update(&recolored_title);
+    let original_title_image = kitty_title_texture.get_texture_data();
 
-    let recolored_gamepad = recolor_spritesheet(&gamepad_texture.get_texture_data(), build_colormap(GAMEPAD_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE.clone()));
-    gamepad_texture.update(&recolored_gamepad);
+    let original_gamepad_image = gamepad_texture.get_texture_data();
+
+    let recolor_textures_from_pallette = |color_pallette: [Color; 5]| {
+        let recolored_ss = recolor_spritesheet(&original_image, build_colormap(ORIGINAL_KITTY_SS_COLORS, color_pallette.clone()));
+        kitty_ss_texture.update(&recolored_ss);
+        
+        let recolored_title = recolor_spritesheet(&original_title_image, build_colormap(ORIGINAL_TITLE_COLORS, color_pallette.clone()));
+        kitty_title_texture.update(&recolored_title);
+    
+        let recolored_gamepad = recolor_spritesheet(&original_gamepad_image, build_colormap(ORIGINAL_GAMEPAD_COLORS, construct_gamepad_colors(color_pallette.clone())));
+        gamepad_texture.update(&recolored_gamepad);
+    };
+
+    recolor_textures_from_pallette((*color_palette.borrow()).clone());
+
+
 
     // kitty_bg_texture.set_filter(FilterMode::Nearest);
     kitty_ss_texture.set_filter(FilterMode::Nearest);
@@ -331,7 +353,7 @@ async fn main() {
             bg_color = map_color(pallette.background);
 
             let new_colormap = build_colormap(
-                KITTY_SS_COLORS,
+                ORIGINAL_KITTY_SS_COLORS,
                 [
                     map_color(pallette.main_kitty),
                     map_color(pallette.pigs_lizards),
@@ -346,11 +368,13 @@ async fn main() {
             let len = cp.len();
 
             for i in 0..cp.len() - 1 {
-                cp[i] = new_colormap[&KITTY_SS_COLORS[i]];
+                cp[i] = new_colormap[&ORIGINAL_KITTY_SS_COLORS[i]];
             }
             cp[len - 1] = BLANK;
 
-            kitty_ss_texture.update(&recolor_spritesheet(&original_image, new_colormap));
+            // kitty_ss_texture.update(&recolor_spritesheet(&original_image, new_colormap));
+
+            recolor_textures_from_pallette(cp.clone());
         };
 
         let mut btns_pressed_this_frame = [0; 4];

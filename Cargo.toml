@@ -11,23 +11,10 @@ default-members = [
 ]
 resolver = "2"
 
+# Make output binaries extra small
 [profile.release]
 opt-level = "z"
 lto = true
 codegen-units = 1   # Reduce number of codegen units to increase optimizations
 panic = 'abort'     # Abort on panic
 strip = true        # Strip symbols from binary*
-
-
-# [profile.release.package.cart]
-# rustflags = [
-#     # Import memory from WASM-4
-#     "-C", "link-arg=--import-memory",
-#     "-C", "link-arg=--initial-memory=65536",
-#     "-C", "link-arg=--max-memory=65536",
-
-#     # Temporary workaround for #255 issue.
-#     # Reserve 8192 bytes of Rust stack space, offset from 6560.
-#     # Bump this value, 16-byte aligned, if the framebuffer gets corrupted.
-#     "-C", "link-arg=-zstack-size=14752",
-# ]

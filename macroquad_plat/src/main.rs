@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 
 use macroquad::prelude::*;
 
-use kittygame::{kittygame_update, multiplatform_defs::{BlitSubFlags, Spritesheet, BUTTON_1, BUTTON_2, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT, BUTTON_UP}};
+use kittygame::{kittygame_update, multiplatform_defs::{BlitSubFlags, DrawColor, Pallette, Spritesheet, BUTTON_1, BUTTON_2, BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT, BUTTON_UP}};
 
 
 const KITTY_SS_COLORS: [[u8; 4]; 5] = [
@@ -65,6 +65,8 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
+    let color_palette = RefCell::new(DEFAULT_COLOR_PALLETTE);
+
     set_pc_assets_folder("assets");
 
     const MAX_SCREEN_DIM: f32 = 400.;
@@ -86,7 +88,9 @@ async fn main() {
 
     font.set_filter(FilterMode::Nearest);
 
-    let recolored_ss = recolor_spritesheet(&kitty_ss_texture.get_texture_data(), build_colormap(KITTY_SS_COLORS, DEFAULT_COLOR_PALLETTE));
+    let original_image = kitty_ss_texture.get_texture_data();
+
+    let recolored_ss = recolor_spritesheet(&original_image, build_colormap(KITTY_SS_COLORS, *color_palette.borrow()));
     kitty_ss_texture.update(&recolored_ss);
     
     let recolored_title = recolor_spritesheet(&kitty_title_texture.get_texture_data(), build_colormap(TITLE_COLOR_PALLETE, DEFAULT_COLOR_PALLETTE));
@@ -102,6 +106,14 @@ async fn main() {
     // it's expensive. So track when the screen changes dimensions.
     let mut last_sh = screen_height();
     let mut last_sw = screen_width();
+
+    let mut bg_color;
+    {
+        let cp = &color_palette.borrow();
+        bg_color = cp[cp.len() - 2];
+    }
+
+    
 
     // let mut fps = 0;
     let mut i = 0;
@@ -157,7 +169,8 @@ async fn main() {
             }
         }
 
-        clear_background(DEFAULT_COLOR_PALLETTE[DEFAULT_COLOR_PALLETTE.len() - 2]);
+        clear_background(bg_color);
+
         let mut cam = Camera2D::from_display_rect(Rect::new(
             0.,
             0.,
@@ -241,15 +254,37 @@ async fn main() {
             )
         };
 
-        let line = |x1: i32, y1: i32, x2: i32, y2: i32| {
-            draw_line(x1 as f32, y1 as f32, x2 as f32, y2 as f32, 1., WHITE);
+        fn map_pallete_color(color: &DrawColor) -> usize {
+            match color {
+                DrawColor::MainKitty => 0,
+                DrawColor::PigsLizards => 1,
+                DrawColor::Foreground => 2,
+                DrawColor::Background => 3
+            }
+        }
+
+        let line = |x1i: i32, y1i: i32, x2i: i32, y2i: i32, color: &DrawColor| {
+            let (mut x1, mut y1, mut x2, mut y2) = (x1i as f32, y1i as f32, x2i as f32, y2i as f32);
+            if x1 == x2 {
+                x1 += 0.5;
+                x2 += 0.5;
+                // if line is being used as a pixel tool
+                y2 += 1.;
+            }
+            else if y1 == y2 {
+                y1 += 0.5;
+                y2 += 0.5;
+                x2 += 1.;
+            }
+            draw_line(x1 as f32, y1 as f32, x2 as f32, y2 as f32, 1., (&color_palette.borrow())[map_pallete_color(color)]);
+            
         };
 
-        let rect = |x1: i32, y1: i32, w: u32, h: u32| {
-            draw_rectangle_lines(x1 as f32, y1 as f32, w as f32, h as f32, 1., WHITE)
+        let rect = |x1: i32, y1: i32, w: u32, h: u32, color: &DrawColor| {
+            draw_rectangle_lines(x1 as f32, y1 as f32, w as f32, h as f32, 1., (&color_palette.borrow())[map_pallete_color(color)])
         };
 
-        let text_str = |t: &str, x: i32, y: i32| {
+        let text_str = |t: &str, x: i32, y: i32, color: &DrawColor| {
             draw_text_ex(
                 t,
                 x as f32,
@@ -258,10 +293,45 @@ async fn main() {
                     font_size: FONT_HEIGHT,
                     font: Some(&font),
                     font_scale: 1.,
-                    color: DEFAULT_COLOR_PALLETTE[0],
+                    color: (&color_palette.borrow())[map_pallete_color(color)],
                     ..Default::default()
                 },
             );
+        };
+
+        let mut switch_palette = |pallette: &Pallette| {
+            fn map_color(color_as_u32: u32) -> Color {
+                color_u8!(
+                    ((color_as_u32 & 0x00ff0000) >> 16) & 0xff,
+                    ((color_as_u32 & 0x0000ff00) >> 8) & 0xff,
+                    color_as_u32 & 0xff,
+                    0xff
+                )
+            }
+
+            bg_color = map_color(pallette.background);
+
+            let new_colormap = build_colormap(
+                KITTY_SS_COLORS,
+                [
+                    map_color(pallette.main_kitty),
+                    map_color(pallette.pigs_lizards),
+                    map_color(pallette.foreground),
+                    bg_color,
+                    BLANK
+                ]
+            );
+
+            let cp = &mut color_palette.borrow_mut();
+
+            let len = cp.len();
+
+            for i in 0..cp.len() - 1 {
+                cp[i] = new_colormap[&KITTY_SS_COLORS[i]];
+            }
+            cp[len - 1] = BLANK;
+
+            kitty_ss_texture.update(&recolor_spritesheet(&original_image, new_colormap));
         };
 
         let mut btns_pressed_this_frame = [0; 4];
@@ -270,8 +340,8 @@ async fn main() {
 
 
         let mut keymap = HashMap::with_capacity(6);
-        keymap.insert(KeyCode::Z, BUTTON_1);
-        keymap.insert(KeyCode::X, BUTTON_2);
+        keymap.insert(KeyCode::X, BUTTON_1);
+        keymap.insert(KeyCode::Z, BUTTON_2);
         keymap.insert(KeyCode::Space, BUTTON_1);
 
         keymap.insert(KeyCode::Left, BUTTON_LEFT);
@@ -290,7 +360,7 @@ async fn main() {
             }
         }  
 
-        kittygame_update(&blit_sub, &line, &rect, &text_str, internal_width as u32, internal_height as u32, &btns_pressed_this_frame, &gamepads);
+        kittygame_update(&blit_sub, &line, &rect, &text_str, &mut switch_palette, internal_width as u32, internal_height as u32, &btns_pressed_this_frame, &gamepads);
         next_frame().await
     }
 }

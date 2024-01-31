@@ -20,7 +20,24 @@ pub struct BlitSubFlags {
     pub flip_y: bool,
 }
 
+// define the colors of a Pallette.
+pub struct Pallette {
+    pub main_kitty: u32,
+    pub pigs_lizards: u32,
+    pub foreground: u32,
+    pub background: u32,
+}
+
+pub enum DrawColor {
+    MainKitty,
+    PigsLizards,
+    Foreground,
+    Background,
+}
+
 pub type BlitSubFunc<'a> = dyn Fn(Spritesheet, i32, i32, u32, u32, u32, u32, BlitSubFlags) + 'a;
-pub type LineFunc<'a> = dyn Fn(i32, i32, i32, i32) + 'a;
-pub type TextStrFunc<'a> = dyn Fn(&str, i32, i32) + 'a;
-pub type RectFunc<'a> = dyn Fn(i32, i32, u32, u32) + 'a;
+pub type LineFunc<'a> = dyn Fn(i32, i32, i32, i32, &DrawColor) + 'a;
+pub type TextStrFunc<'a> = dyn Fn(&str, i32, i32, &DrawColor) + 'a;
+pub type RectFunc<'a> = dyn Fn(i32, i32, u32, u32, &DrawColor) + 'a;
+pub type SwitchPalletteFunc<'a> = dyn FnMut(&Pallette) + 'a;
+

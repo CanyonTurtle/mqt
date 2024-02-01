@@ -261,6 +261,9 @@ fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &BlitSubFunc) 
 /// Main loop that runs every frame. Progress the game state and render.
 #[no_mangle]
 pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc, text_str: &TextStrFunc, set_palette: &mut SwitchPalletteFunc, sw: u32, sh: u32, btns_pressed_this_frame: &[u8; 4], gamepads: &[u8; 4]) {
+    
+    let (center_x, center_y) = (sw as f32 / 2., sh as f32 / 2.);
+    
     let mut game_state: &mut GameState;
 
     // -------- INITIALIZE GAME STATE IF NEEDED ----------
@@ -309,12 +312,12 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
         OptionallyEnabledPlayer::Disabled => {}
         OptionallyEnabledPlayer::Enabled(player) => {
             game_state.camera.current_viewing_x_target = num::clamp(
-                player.character.x_pos - 80.0,
+                player.character.x_pos - center_x,
                 X_LEFT_BOUND as f32,
                 X_RIGHT_BOUND as f32,
             );
             game_state.camera.current_viewing_y_target = num::clamp(
-                player.character.y_pos - 80.0,
+                player.character.y_pos - center_y,
                 Y_LOWER_BOUND as f32,
                 Y_UPPER_BOUND as f32,
             );
@@ -752,7 +755,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                     for (i, card) in p.card_stack.cards.iter_mut().enumerate() {
                         match card {
                             Some(c) => {
-                                c.target_x = (80 + 15 * i) as f32;
+                                c.target_x = (sw as usize - 80 + 15 * i) as f32;
                                 c.target_y = 1.0;
                             },
                             None => {}
@@ -875,8 +878,8 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                                             game_state.game_mode =
                                                 GameMode::NormalPlay(NormalPlayModes::HoverModal(Modal::new(
                                                     AbsoluteBoundingBox {
-                                                        x: 45,
-                                                        y: 40,
+                                                        x: center_x as i32 - 35,
+                                                        y: center_y as i32 - 40,
                                                         width: 70,
                                                         height: 50,
                                                     },
@@ -1002,8 +1005,8 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                     game_state.tutorial_text_counter += 1;
                     game_state.game_mode = GameMode::NormalPlay(NormalPlayModes::HoverModal(Modal::new(
                         AbsoluteBoundingBox {
-                            x: 10,
-                            y: 10,
+                            x: center_x as i32 - 70,
+                            y: center_y as i32 - 70,
                             width: 140,
                             height: 140,
                         },
@@ -1030,8 +1033,8 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                         game_state.game_mode =
                         GameMode::NormalPlay(NormalPlayModes::HoverModal(Modal::new(
                             AbsoluteBoundingBox {
-                                x: 40,
-                                y: 40,
+                                x: center_x as i32 - 40,
+                                y: center_y as i32 - 40,
                                 width: 80,
                                 height: 40,
                             },
@@ -1101,11 +1104,11 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                 );
                 // unsafe{*DRAW_COLORS = 0x0002};
                 if game_state.song_timer % 30 >= 15 {
-                    text_str("Any key: play", 24, 110, &DrawColor::MainKitty);
+                    text_str("Any key: play", center_x as i32 - 50, 110, &DrawColor::MainKitty);
                 }
                 
-                text_str("by CanyonTurtle", 20, 125, &DrawColor::MainKitty);
-                text_str(" & BurntSugar  ", 20, 135, &DrawColor::MainKitty);
+                text_str("by CanyonTurtle", center_x as i32 - 55, 125, &DrawColor::MainKitty);
+                text_str(" & BurntSugar  ", center_x as i32 - 50, 135, &DrawColor::MainKitty);
                 text_str(&format!["ver. {}.{}.{}", MAJOR_VERSION, MINOR_VERSION, INCR_VERSION], 40, 150, &DrawColor::MainKitty);
                 if btns_pressed_this_frame[0] != 0 {
                     // game_state.game_mode = GameMode::NormalPlay(NormalPlayModes::MainGameplay);
@@ -1124,16 +1127,15 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
         },
         GameMode::SelectScreen(select_setup) => {
 
-            const BOX_LEFT_MARGIN: i32 = 15;
-            const BOX_RIGHT_MARGIN: i32 = BOX_LEFT_MARGIN;
-            let box_width: i32 = sw as i32 - BOX_LEFT_MARGIN - BOX_RIGHT_MARGIN;
+            const BOX_WIDTH: i32 = 120;
+            let box_margin = (sw as i32 - BOX_WIDTH) / 2;
             const BOX_HEIGHT: i32 = 60;
 
             const RUN_TYPE_Y: i32 = 66;
             // const DIFFICULTY_Y: i32 = 33;
             // const CHARACTER_Y: i32 = 46;
             const START_Y: i32 = 130;
-            const START_X: i32 = 48;
+            let start_x: i32 = center_x as i32 - 25;
 
             // const START_WIDTH: i32 = 60;
             // const START_HEIGHT: i32 = 19;
@@ -1148,12 +1150,12 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
 
             // draw background for menus
             draw_modal_bg(&AbsoluteBoundingBox{x: 0f32, y: 0f32, width: 159f32, height: 159f32}, 0, &DrawColor::Foreground, line, rect);
-            draw_selected_box((BOX_LEFT_MARGIN, RUN_TYPE_Y, box_width, BOX_HEIGHT), 0, &DrawColor::Foreground, line, rect);
+            draw_selected_box((box_margin, RUN_TYPE_Y, BOX_WIDTH, BOX_HEIGHT), 0, &DrawColor::Foreground, line, rect);
 
             // draw options that get overdrawn later if they're not selected
-            // layertext("Run Type", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST);
-            // layertext("Difficulty", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, DIFFICULTY_Y + SETTING_GROUP_INLAY_DIST);
-            // layertext("Character", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, CHARACTER_Y + SETTING_GROUP_INLAY_DIST);
+            // layertext("Run Type", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST);
+            // layertext("Difficulty", box_margin + SETTING_GROUP_INLAY_DIST, DIFFICULTY_Y + SETTING_GROUP_INLAY_DIST);
+            // layertext("Character", box_margin + SETTING_GROUP_INLAY_DIST, CHARACTER_Y + SETTING_GROUP_INLAY_DIST);
 
             // if btns_pressed_this_frame[0] & BUTTON_DOWN != 0 {
             //     select_setup.current_selection = match select_setup.current_selection {
@@ -1182,15 +1184,15 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                         }   
                     }
                     // draw box around run type
-                    draw_selected_box((BOX_LEFT_MARGIN, RUN_TYPE_Y, box_width, BOX_HEIGHT), 1, &DrawColor::MainKitty, line, rect);
-                    // layertext("Run Type", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST);
+                    draw_selected_box((box_margin, RUN_TYPE_Y, BOX_WIDTH, BOX_HEIGHT), 1, &DrawColor::MainKitty, line, rect);
+                    // layertext("Run Type", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST);
 
                     if game_state.song_timer % 30 >= 15 {
                         // unsafe {*DRAW_COLORS = 0x0004}
                         // text_bytes(&[b'\x85'], 132, 72);
                         // text_bytes(&[b'\x80'], 45, 136);
-                        text_str(">", 132, 72, &DrawColor::MainKitty);
-                        text_str("x", 45, 136, &DrawColor::MainKitty);
+                        text_str(">", center_x as i32 + 52, 72, &DrawColor::MainKitty);
+                        text_str("x", start_x - 10, 136, &DrawColor::MainKitty);
                     }
 
                     if btns_pressed_this_frame[0] & (BUTTON_2) != 0 {
@@ -1199,7 +1201,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                         }
                     }
 
-                    layertext("Start!", START_X + SETTING_GROUP_INLAY_DIST + 3, START_Y + SETTING_GROUP_INLAY_DIST + 1, text_str);
+                    layertext("Start!", start_x + SETTING_GROUP_INLAY_DIST + 3, START_Y + SETTING_GROUP_INLAY_DIST + 1, text_str);
 
                     if btns_pressed_this_frame[0] & BUTTON_1 != 0 {
                         game_state.game_mode = GameMode::NormalPlay(NormalPlayModes::MainGameplay);
@@ -1211,12 +1213,12 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                 },
                 // SelectMenuFocuses::Difficulty => {
                 //     // draw box around difficulty
-                //     draw_selected_box((BOX_LEFT_MARGIN, DIFFICULTY_Y, BOX_WIDTH, BOX_HEIGHT));
-                //     layertext("Difficulty", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, DIFFICULTY_Y + SETTING_GROUP_INLAY_DIST);
+                //     draw_selected_box((box_margin, DIFFICULTY_Y, BOX_WIDTH, BOX_HEIGHT));
+                //     layertext("Difficulty", box_margin + SETTING_GROUP_INLAY_DIST, DIFFICULTY_Y + SETTING_GROUP_INLAY_DIST);
                 // },
                 // SelectMenuFocuses::CharacterSelect => {
-                //     draw_selected_box((BOX_LEFT_MARGIN, CHARACTER_Y, BOX_WIDTH, BOX_HEIGHT));
-                //     layertext("Character", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, CHARACTER_Y + SETTING_GROUP_INLAY_DIST);
+                //     draw_selected_box((box_margin, CHARACTER_Y, BOX_WIDTH, BOX_HEIGHT));
+                //     layertext("Character", box_margin + SETTING_GROUP_INLAY_DIST, CHARACTER_Y + SETTING_GROUP_INLAY_DIST);
 
                 // },
                 // SelectMenuFocuses::StartGameBtn => {
@@ -1231,22 +1233,22 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
 
             match game_state.settings.run_type {
                 game::game_state::RunType::Random => {
-                    layertext("Normal Mode", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST + 20, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST, text_str);
-                    layertext("Random levels.", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 15, text_str);
-                    layertext("Find kitties", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 25, text_str);
-                    layertext("in time!", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, text_str);
+                    layertext("Normal Mode", box_margin + SETTING_GROUP_INLAY_DIST + 20, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST, text_str);
+                    layertext("Random levels.", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 15, text_str);
+                    layertext("Find kitties", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 25, text_str);
+                    layertext("in time!", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, text_str);
 
                 },
                 game::game_state::RunType::Speedrun(n) => {
-                    layertext("Seed Mode", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST + 25, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST, text_str);
-                    layertext("Fixed maps", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 15, text_str);
-                    layertext("For speedruns!", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 25, text_str);
-                    layertext(&format![" for seed: {}", n],BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST + 1, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, text_str);
+                    layertext("Seed Mode", box_margin + SETTING_GROUP_INLAY_DIST + 25, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST, text_str);
+                    layertext("Fixed maps", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 15, text_str);
+                    layertext("For speedruns!", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 25, text_str);
+                    layertext(&format![" for seed: {}", n],box_margin + SETTING_GROUP_INLAY_DIST + 1, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, text_str);
                     if game_state.song_timer % 30 >= 15 {
                         // unsafe {*DRAW_COLORS = 0x0004}
 
-                        // text_bytes(&[b'\x81'], BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35);
-                        text_str("z", BOX_LEFT_MARGIN + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, &DrawColor::MainKitty);
+                        // text_bytes(&[b'\x81'], box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35);
+                        text_str("z", box_margin + SETTING_GROUP_INLAY_DIST, RUN_TYPE_Y + SETTING_GROUP_INLAY_DIST + 35, &DrawColor::MainKitty);
 
                     }
                 },

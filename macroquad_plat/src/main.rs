@@ -414,10 +414,12 @@ async fn main() {
             x: 0., y: 0., w: 29., h: 29.
         };
 
-        let left_arrow_pos: Vec2 = Vec2{x: 10., y: internal_height as f32 - 40.};
-        let right_arrow_pos: Vec2 = Vec2{x: 50., y: internal_height as f32 - 40.};
-        let x_button_pos: Vec2 = Vec2{x: internal_width as f32 - 40., y: internal_height as f32 - 50.};
-        let z_button_pos: Vec2 = Vec2{x: internal_width as f32 - 70., y: internal_height as f32 - 35.};
+        const GAMEPAD_OFFSET_FROM_BOTTOM: f32  = 60.;
+
+        let left_arrow_pos: Vec2 = Vec2{x: 10., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM};
+        let right_arrow_pos: Vec2 = Vec2{x: 50., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM};
+        let x_button_pos: Vec2 = Vec2{x: internal_width as f32 - 40., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM - 10.};
+        let z_button_pos: Vec2 = Vec2{x: internal_width as f32 - 70., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM + 10.};
 
         let touch_zones: [Rect; 4] = [
             ARROW_SPRITE_RECT.offset(left_arrow_pos - Vec2{x: ARROW_SPRITE_RECT.x, y: ARROW_SPRITE_RECT.y}),

@@ -23,18 +23,22 @@
       #fullscreen {
         position: absolute;
         z-index: 1;
-        top: 0;
-        left: 0;
-        width: 30%;
-        height: 30%;
-
+        top: 10%;
+        right: 0;
+        font-size: 8vh;
+        background-color: transparent;
+        background-repeat: no-repeat;
+        border: none;
+        cursor: pointer;
+        overflow: hidden;
+        outline: none;
       }
     </style>
 </head>
 
 <body>
     <canvas id="glcanvas" tabindex='1'></canvas>
-    <button id="fullscreen" onclick="openFullscreen();">Fullscreen</button>
+    <button id="fullscreen" onclick="openFullscreen();">&#x26F6</button>
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
     <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
     <script>
@@ -52,7 +56,7 @@
           } else if (elem.webkitEnterFullscreen) { /* Safari */
             elem.webkitEnterFullscreen();
           }
-          <!-- fb.getRootNode().removeChild(fb) -->
+          fb.parentNode.removeChild(fb)
         }
     </script> <!-- Your compiled wasm file -->
 

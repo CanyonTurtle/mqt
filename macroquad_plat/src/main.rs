@@ -75,14 +75,23 @@ async fn main() {
 
     /// the first color is the foreground color, 
     /// and the others are transparent.
-    fn construct_gamepad_colors(colors: [Color; 5]) -> [Color; 5] {
-        [
-            colors[0],
-            BLANK,
-            BLANK,
-            BLANK,
-            BLANK
-        ]
+    fn construct_gamepad_colors(colors: [Color; 5]) -> ([Color; 5], [Color; 5]) {
+        (
+            [
+                colors[0],
+                BLANK,
+                BLANK,
+                BLANK,
+                BLANK
+            ],
+            [
+                colors[1],
+                BLANK,
+                BLANK,
+                BLANK,
+                BLANK
+            ],
+        )
     }
 
     enum InputMode {
@@ -122,6 +131,10 @@ async fn main() {
 
     let original_gamepad_image = gamepad_texture.get_texture_data();
 
+    let pressed_gamepad_image = gamepad_texture.get_texture_data();
+
+    let pressed_gamepad_texture = Texture2D::from_image(&pressed_gamepad_image);
+
     let recolor_textures_from_pallette = |color_pallette: [Color; 5]| {
         let recolored_ss = recolor_spritesheet(&original_image, build_colormap(ORIGINAL_KITTY_SS_COLORS, color_pallette.clone()));
         kitty_ss_texture.update(&recolored_ss);
@@ -129,8 +142,14 @@ async fn main() {
         let recolored_title = recolor_spritesheet(&original_title_image, build_colormap(ORIGINAL_TITLE_COLORS, color_pallette.clone()));
         kitty_title_texture.update(&recolored_title);
     
-        let recolored_gamepad = recolor_spritesheet(&original_gamepad_image, build_colormap(ORIGINAL_GAMEPAD_COLORS, construct_gamepad_colors(color_pallette.clone())));
+        let (gamepad_color_pallette, pressed_color_pallette) = construct_gamepad_colors(color_pallette.clone());
+
+        let recolored_gamepad = recolor_spritesheet(&original_gamepad_image, build_colormap(ORIGINAL_GAMEPAD_COLORS, gamepad_color_pallette.clone()));
         gamepad_texture.update(&recolored_gamepad);
+        
+
+        let recored_pressed_gamepad = recolor_spritesheet(&pressed_gamepad_image, build_colormap(ORIGINAL_GAMEPAD_COLORS, pressed_color_pallette));
+        pressed_gamepad_texture.update(&recored_pressed_gamepad);
     };
 
     recolor_textures_from_pallette((*color_palette.borrow()).clone());
@@ -419,14 +438,14 @@ async fn main() {
 
         let left_arrow_pos: Vec2 = Vec2{x: 10., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM};
         let right_arrow_pos: Vec2 = Vec2{x: 50., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM};
-        let x_button_pos: Vec2 = Vec2{x: internal_width as f32 - 40., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM - 10.};
-        let z_button_pos: Vec2 = Vec2{x: internal_width as f32 - 70., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM + 10.};
+        let x_button_pos: Vec2 = Vec2{x: internal_width as f32 - 70., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM + 10.};
+        let z_button_pos: Vec2 = Vec2{x: internal_width as f32 - 40., y: internal_height as f32 - GAMEPAD_OFFSET_FROM_BOTTOM - 10.};
 
         let touch_zones: [Rect; 4] = [
             ARROW_SPRITE_RECT.offset(left_arrow_pos - Vec2{x: ARROW_SPRITE_RECT.x, y: ARROW_SPRITE_RECT.y}),
             ARROW_SPRITE_RECT.offset(right_arrow_pos - Vec2{x: ARROW_SPRITE_RECT.x, y: ARROW_SPRITE_RECT.y}),
-            BUTTON_SPRITE_RECT.offset(z_button_pos - Vec2{x: BUTTON_SPRITE_RECT.x, y: BUTTON_SPRITE_RECT.y}),
             BUTTON_SPRITE_RECT.offset(x_button_pos - Vec2{x: BUTTON_SPRITE_RECT.x, y: BUTTON_SPRITE_RECT.y}),
+            BUTTON_SPRITE_RECT.offset(z_button_pos - Vec2{x: BUTTON_SPRITE_RECT.x, y: BUTTON_SPRITE_RECT.y}),
         ];
         let touch_buttons: [u8; 4] = [BUTTON_LEFT, BUTTON_RIGHT, BUTTON_1, BUTTON_2];
 
@@ -445,6 +464,7 @@ async fn main() {
                         
                         if touch_zone.contains(position_internal) {
                             btns_pressed_this_frame[0] |= touch_button;
+                            gamepads[0] |= touch_button;
                             trace!("hit");
                         }
                     }
@@ -470,29 +490,44 @@ async fn main() {
             InputMode::KeyboardDetected => {},
             InputMode::Touchpad => {
 
-
+                let left_texture = match &gamepads[0] & BUTTON_LEFT != 0 {
+                    true => &pressed_gamepad_texture,
+                    false => &gamepad_texture
+                };
+                let right_texture = match &gamepads[0] & BUTTON_RIGHT != 0 {
+                    true => &pressed_gamepad_texture,
+                    false => &gamepad_texture
+                };
+                let x_texture = match &gamepads[0] & BUTTON_1 != 0 {
+                    true => &pressed_gamepad_texture,
+                    false => &gamepad_texture
+                };
+                let z_texture = match &gamepads[0] & BUTTON_2 != 0 {
+                    true => &pressed_gamepad_texture,
+                    false => &gamepad_texture
+                };
 
 
                 // left arrow
-                draw_texture_ex(&gamepad_texture, left_arrow_pos.x, left_arrow_pos.y, WHITE, DrawTextureParams{
+                draw_texture_ex(left_texture, left_arrow_pos.x, left_arrow_pos.y, WHITE, DrawTextureParams{
                     source: Some(ARROW_SPRITE_RECT),
                     flip_x: true,
                     ..Default::default()
                 });
                 // right arrow
-                draw_texture_ex(&gamepad_texture, right_arrow_pos.x, right_arrow_pos.y, WHITE, DrawTextureParams{
+                draw_texture_ex(right_texture, right_arrow_pos.x, right_arrow_pos.y, WHITE, DrawTextureParams{
                     source: Some(ARROW_SPRITE_RECT),
                     ..Default::default()
                 });
 
                 // x
-                draw_texture_ex(&gamepad_texture, x_button_pos.x, x_button_pos.y, WHITE, DrawTextureParams{
+                draw_texture_ex(x_texture, x_button_pos.x, x_button_pos.y, WHITE, DrawTextureParams{
                     source: Some(BUTTON_SPRITE_RECT),
                     ..Default::default()
                 });
 
                 // z
-                draw_texture_ex(&gamepad_texture, z_button_pos.x, z_button_pos.y, WHITE, DrawTextureParams{
+                draw_texture_ex(z_texture, z_button_pos.x, z_button_pos.y, WHITE, DrawTextureParams{
                     source: Some(BUTTON_SPRITE_RECT),
                     ..Default::default()
                 });

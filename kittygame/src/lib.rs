@@ -41,7 +41,7 @@ mod game;
 use crate::{game::{
         collision::{get_bound_of_character, AbsoluteBoundingBox},
         entities::OptionallyEnabledPlayer,
-        menus::{Modal, NormalPlayModes, MenuTypes, SelectSetup, SelectMenuFocuses}, game_constants::{COUNTDOWN_TIMER_START, START_DIFFICULTY_LEVEL, MAJOR_VERSION, MINOR_VERSION, INCR_VERSION, FINAL_LEVEL}, popup_text::{PopTextRingbuffer, PopupIcon}, rng::{GameRng, Rng}, game_state::RunType,}, multiplatform_defs::{Pallette, BUTTON_1, BUTTON_2, BUTTON_LEFT, BUTTON_RIGHT}};
+        menus::{Modal, NormalPlayModes, MenuTypes, SelectSetup, SelectMenuFocuses}, game_constants::{COUNTDOWN_TIMER_START, FINAL_LEVEL, INCR_VERSION, LEVELS_PER_MOOD, MAJOR_VERSION, MINOR_VERSION, START_DIFFICULTY_LEVEL}, popup_text::{PopTextRingbuffer, PopupIcon}, rng::{GameRng, Rng}, game_state::RunType,}, multiplatform_defs::{Pallette, BUTTON_1, BUTTON_2, BUTTON_LEFT, BUTTON_RIGHT}};
 
 /// draw the tiles in the map, relative to the camera.
 fn drawmap(game_state: &GameState, blit_sub: &BlitSubFunc, sw: u32, sh: u32) {
@@ -623,7 +623,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                 .fold(0, |acc, e| acc + match e.following_i {None => 0, Some(_) => 1});
 
             // COMPUTE SCORE, LEVEL, # KITTIES (used later either in modal or normal screen)
-            let world_level_text = &format!["W{}-L{}", ((game_state.difficulty_level - 1) / 5) + 1, ((game_state.difficulty_level - 1) % 5) + 1];
+            let world_level_text = &format!["W{}-L{}", ((game_state.difficulty_level - 1) / LEVELS_PER_MOOD as u32) + 1, ((game_state.difficulty_level - 1) % LEVELS_PER_MOOD as u32) + 1];
             let score_text = match game_state.settings.run_type {
                 game::game_state::RunType::Random => {
                     format!["Sc: {}p", game_state.score]

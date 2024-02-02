@@ -273,20 +273,21 @@ async fn main() {
         //pub type BlitSubFunc = fn(Spritesheet, i32, i32, u32, u32, u32, u32, u32, BlitSubFlags);
 
         let blit_sub = |spritesheet: Spritesheet, x: i32, y: i32, w: u32, h: u32, src_x: u32, src_y: u32, flags: BlitSubFlags| {
+            const CLIP_OFF_EPS: f32 = -0.1;
             draw_texture_ex(
                 match spritesheet {
                     Spritesheet::Main => &kitty_ss_texture,
                     Spritesheet::Title => &kitty_title_texture,
                 },
-                x as f32,
-                y as f32,
+                x as f32 + CLIP_OFF_EPS,
+                y as f32 + CLIP_OFF_EPS,
                 WHITE,
                 DrawTextureParams{
                     source: Some(Rect{
-                        x: src_x as f32,
-                        y: src_y as f32,
-                        w: w as f32,
-                        h: h as f32
+                        x: src_x as f32 + CLIP_OFF_EPS,
+                        y: src_y as f32 + CLIP_OFF_EPS,
+                        w: w as f32 - 2. * CLIP_OFF_EPS,
+                        h: h as f32 - 2. * CLIP_OFF_EPS
                     }),
                     flip_x: flags.flip_x,
                     flip_y: flags.flip_y,

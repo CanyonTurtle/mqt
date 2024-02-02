@@ -186,7 +186,7 @@ impl Sprite {
             [0, 0, 43, 9, 5],
             [1, 0, 42, 10, 6],
             [2, 0, 41, 9, 7],
-            [3, 0, 38, 9, 10],
+            [3, 0, 37, 9, 10],
             [4, 0, 39, 6, 9],
             [5, 0, 41, 7, 7],
         ]));
@@ -197,8 +197,8 @@ impl Sprite {
             [1, 0, 51, 9, 5],
             [2, 0, 51, 9, 5],
             [3, 0, 48, 10, 8],
-            [4, 0, 48, 5, 8],
-            [5, 0, 50, 8, 7],
+            [4, 7, 48, 5, 8],
+            [5, 0, 49, 8, 7],
         ]));
 
         // 3: lil kitty 3
@@ -259,19 +259,19 @@ impl Sprite {
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 0, 5, 5]]));
 
         // 9: solid block
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 5, 0, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 5, 0, 5, 5]]));
 
         // 10: top right corner
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 0, 5, 5]]));
 
         // 11: bottom left corner
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 5, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 0, 5, 5, 5]]));
 
         // 12: see through bubble block
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 5, 5, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[2, 5, 5, 5, 5]]));
 
         // 13: bottom right corner
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 5, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 10, 5, 5, 5]]));
 
         // --- Columns ---
 
@@ -279,7 +279,7 @@ impl Sprite {
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 10, 5, 5]]));
 
         // 15: column middle
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 15, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 0, 15, 5, 5]]));
 
         // 16: column bottom
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 20, 5, 5]]));
@@ -287,16 +287,16 @@ impl Sprite {
         // --- The regular Line wall sprites -----
 
         // 17: left
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 5, 10, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[4, 5, 10, 5, 5]]));
 
         // 18: bottom
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 10, 5, 5]]));
 
         // 19: top
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 5, 15, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[2, 5, 15, 5, 5]]));
 
         // 20: right
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 15, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 10, 15, 5, 5]]));
 
         // 21: kitty card
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[3, 0, 0, 12, 12]]));
@@ -313,13 +313,13 @@ impl Sprite {
         // ------- SOLID TILESET ----------
 
         // 25: solid tileset top left
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 25, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 0, 25, 5, 5]]));
 
         // 26: solid block
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 5, 25, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[2, 5, 25, 5, 5]]));
 
         // 27: solid top right
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 25, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 10, 25, 5, 5]]));
 
         // 28: bottom left
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 30, 5, 5]]));
@@ -328,16 +328,16 @@ impl Sprite {
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 30, 5, 5]]));
 
         // 30: complete solid
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 0, 35, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 0, 35, 5, 5]]));
 
         // 31: scraggle
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 5, 35, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[2, 5, 35, 5, 5]]));
 
         // 32: checker
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 10, 35, 5, 5]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 10, 35, 5, 5]]));
 
         // 33: cloud
-        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[1, 0, 0, 6, 3]]));
+        the_sprites.push(Sprite::from_page_x_y_w_h(vec![[2, 0, 0, 6, 3]]));
 
         // 34: clock
         the_sprites.push(Sprite::from_page_x_y_w_h(vec![[0, 17, 0, 7, 8]]));

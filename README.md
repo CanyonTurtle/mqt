@@ -1,4 +1,9 @@
 # MQT
+
+![Kittygame gif](./kittygame.gif)
+
+Play online here: <https://canyonturtle.github.io/mqt/>
+
 Kitty game, ported to 3 game engines (originated on wasm4, then ported to macroquad, then to bevy).
 
 ## Why port a game to 3 platforms?

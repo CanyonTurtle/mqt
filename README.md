@@ -2,7 +2,7 @@
 Kitty game, ported to 3 game engines (originated on wasm4, then ported to macroquad, then to bevy).
 
 ## Why port a game to 3 platforms?
-Mostly, for educational purposes. But this is an interesting way to compare the abilities of various Rust platforms as well.
+Mostly, for educational purposes. But this is an interesting way to compare the pixel-game abilities of various Rust platforms as well.
 
 ## How is the code portable?
 The main game is very light graphically - it requires only the ability to get key/touch input, draw text, draw lines and points, and draw subsections of a spritesheet with a given palette. So, the core is abstracted out (see `/kittygame`) and then each platform defines functions and input polls (e.g. `/macroquad_plat`).

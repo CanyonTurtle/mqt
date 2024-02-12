@@ -1,3 +1,16 @@
 [target.x86_64-pc-windows-gnu]
 linker = "x86_64-w64-mingw32-gcc"
 ar = "x86_64-w64-mingw32-gcc-ar"
+
+[target.wasm32-unknown-unknown]
+rustflags = [
+    # Import memory from WASM-4
+    "-C", "link-arg=--import-memory",
+    "-C", "link-arg=--initial-memory=65536",
+    "-C", "link-arg=--max-memory=65536",
+
+    # Temporary workaround for #255 issue.
+    # Reserve 8192 bytes of Rust stack space, offset from 6560.
+    # Bump this value, 16-byte aligned, if the framebuffer gets corrupted.
+    "-C", "link-arg=-zstack-size=14752",
+]

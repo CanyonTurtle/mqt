@@ -3,6 +3,7 @@
 members = [
     "macroquad_plat",
     "wasm4_plat",
+    "bevy_plat",
     "kittygame",
 ]
 default-members = [
@@ -18,3 +19,12 @@ lto = true
 codegen-units = 1   # Reduce number of codegen units to increase optimizations
 panic = 'abort'     # Abort on panic
 strip = true        # Strip symbols from binary*
+
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+# Enable only a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1

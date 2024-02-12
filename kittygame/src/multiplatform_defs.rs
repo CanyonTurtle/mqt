@@ -35,9 +35,9 @@ pub enum DrawColor {
     Background,
 }
 
-pub type BlitSubFunc<'a> = dyn Fn(Spritesheet, i32, i32, u32, u32, u32, u32, BlitSubFlags) + 'a;
-pub type LineFunc<'a> = dyn Fn(i32, i32, i32, i32, &DrawColor) + 'a;
-pub type TextStrFunc<'a> = dyn Fn(&str, i32, i32, &DrawColor) + 'a;
-pub type RectFunc<'a> = dyn Fn(i32, i32, u32, u32, &DrawColor) + 'a;
+pub type BlitSubFunc<'a> = dyn FnMut(Spritesheet, i32, i32, u32, u32, u32, u32, BlitSubFlags) + 'a;
+pub type LineFunc<'a> = dyn FnMut(i32, i32, i32, i32, &DrawColor) + 'a;
+pub type TextStrFunc<'a> = dyn FnMut(&str, i32, i32, &DrawColor) + 'a;
+pub type RectFunc<'a> = dyn FnMut(i32, i32, u32, u32, &DrawColor) + 'a;
 pub type SwitchPalletteFunc<'a> = dyn FnMut(&Pallette) + 'a;
 

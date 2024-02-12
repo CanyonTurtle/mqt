@@ -102,5 +102,5 @@ fn set_palette(palette: &Pallette) {
 fn update() {
     let [btns_pressed_this_frame, gamepads] = get_inputs_this_frame();
 
-    kittygame::kittygame_update(&my_blit_sub, &my_line, &my_rect, &my_text_str, &mut set_palette, 160, 160, &btns_pressed_this_frame, &gamepads);
+    kittygame::kittygame_update(&mut my_blit_sub, &mut my_line, &mut my_rect, &mut my_text_str, &mut set_palette, 160, 160, &btns_pressed_this_frame, &gamepads);
 }

@@ -291,7 +291,7 @@ async fn main() {
         
         //pub type BlitSubFunc = fn(Spritesheet, i32, i32, u32, u32, u32, u32, u32, BlitSubFlags);
 
-        let blit_sub = |spritesheet: Spritesheet, x: i32, y: i32, w: u32, h: u32, src_x: u32, src_y: u32, flags: BlitSubFlags| {
+        let blit_sub = &mut |spritesheet: Spritesheet, x: i32, y: i32, w: u32, h: u32, src_x: u32, src_y: u32, flags: BlitSubFlags| {
             const CLIP_OFF_EPS: f32 = -0.1;
             draw_texture_ex(
                 match spritesheet {
@@ -324,7 +324,7 @@ async fn main() {
             }
         }
 
-        let line = |x1i: i32, y1i: i32, x2i: i32, y2i: i32, color: &DrawColor| {
+        let line = &mut |x1i: i32, y1i: i32, x2i: i32, y2i: i32, color: &DrawColor| {
             let (mut x1, mut y1, mut x2, mut y2) = (x1i as f32, y1i as f32, x2i as f32, y2i as f32);
             if x1 == x2 {
                 x1 += 0.5;
@@ -341,11 +341,11 @@ async fn main() {
             
         };
 
-        let rect = |x1: i32, y1: i32, w: u32, h: u32, color: &DrawColor| {
+        let rect = &mut |x1: i32, y1: i32, w: u32, h: u32, color: &DrawColor| {
             draw_rectangle_lines(x1 as f32, y1 as f32, w as f32, h as f32, 1., (&color_palette.borrow())[map_pallete_color(color)])
         };
 
-        let text_str = |t: &str, x: i32, y: i32, color: &DrawColor| {
+        let text_str = &mut |t: &str, x: i32, y: i32, color: &DrawColor| {
             draw_text_ex(
                 t,
                 x as f32,
@@ -360,7 +360,7 @@ async fn main() {
             );
         };
 
-        let mut switch_palette = |pallette: &Pallette| {
+        let switch_palette = &mut |pallette: &Pallette| {
             fn map_color(color_as_u32: u32) -> Color {
                 color_u8!(
                     ((color_as_u32 & 0x00ff0000) >> 16) & 0xff,
@@ -484,7 +484,7 @@ async fn main() {
             }
         }
 
-        kittygame_update(&blit_sub, &line, &rect, &text_str, &mut switch_palette, internal_width as u32, internal_height as u32, &btns_pressed_this_frame, &gamepads);
+        kittygame_update(blit_sub, line, rect, text_str, switch_palette, internal_width as u32, internal_height as u32, &btns_pressed_this_frame, &gamepads);
 
         match current_input_mode {
             InputMode::KeyboardDetected => {},

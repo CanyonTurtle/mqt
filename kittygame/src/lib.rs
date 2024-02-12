@@ -44,7 +44,7 @@ use crate::{game::{
         menus::{Modal, NormalPlayModes, MenuTypes, SelectSetup, SelectMenuFocuses}, game_constants::{COUNTDOWN_TIMER_START, FINAL_LEVEL, INCR_VERSION, LEVELS_PER_MOOD, MAJOR_VERSION, MINOR_VERSION, START_DIFFICULTY_LEVEL}, popup_text::{PopTextRingbuffer, PopupIcon}, rng::{GameRng, Rng}, game_state::RunType,}, multiplatform_defs::{Pallette, BUTTON_1, BUTTON_2, BUTTON_LEFT, BUTTON_RIGHT}};
 
 /// draw the tiles in the map, relative to the camera.
-fn drawmap(game_state: &GameState, blit_sub: &BlitSubFunc, sw: u32, sh: u32) {
+fn drawmap(game_state: &GameState, blit_sub: &mut BlitSubFunc, sw: u32, sh: u32) {
     let map = &game_state.map;
     let camera = &game_state.camera;
 
@@ -93,7 +93,7 @@ static mut GAME_STATE_HOLDER: Option<GameState> = None;
 fn drawcharacter(
     camera: &Camera,
     character: MovingEntity,
-    blit_sub: &BlitSubFunc
+    blit_sub: &mut BlitSubFunc
 ) {
     let the_char: &mut Character;
 
@@ -155,7 +155,7 @@ const TOP_UI_TEXT_Y: i32 = 2;
 const BOTTOM_UI_TEXT_Y_OFFSET: i32 = -8; // 160 - 8 - 2;
 
 /// DRAW BLURRED BACKGROUND BEHIND SCORE AND TIME TEXTS IN-GAME
-fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: &DrawColor, line: &LineFunc, rect: &RectFunc) {
+fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: &DrawColor, line: &mut LineFunc, rect: &mut RectFunc) {
     // unsafe { *DRAW_COLORS = color }
     let p: AbsoluteBoundingBox<i32, u32> = AbsoluteBoundingBox {
         x: pf.x as i32,
@@ -223,7 +223,7 @@ fn draw_modal_bg(pf: &AbsoluteBoundingBox<f32, f32>, style: u8, color: &DrawColo
 }
 
 /// Draw text with a soft background under
-fn layertext(t: &str, x: i32, y: i32, text_str: &TextStrFunc) {
+fn layertext(t: &str, x: i32, y: i32, text_str: &mut TextStrFunc) {
     // unsafe { *DRAW_COLORS = 0x0001 }
     text_str(t, x + 1, y, &DrawColor::Background);
     text_str(t, x, y + 1, &DrawColor::Background);
@@ -236,7 +236,7 @@ fn layertext(t: &str, x: i32, y: i32, text_str: &TextStrFunc) {
 const TIMER_INTERACTIVE_START: u32 = 100;
 const TITLE_Y: i32 = 15;
 
-fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &BlitSubFunc) {
+fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &mut BlitSubFunc) {
     // RENDER THE TITLE
     // unsafe { *DRAW_COLORS = 0x0034 }
     let title_x: i32 = x;
@@ -260,7 +260,7 @@ fn render_title(game_state: &GameState, x: i32, y: i32, blit_sub: &BlitSubFunc) 
 
 /// Main loop that runs every frame. Progress the game state and render.
 #[no_mangle]
-pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc, text_str: &TextStrFunc, set_palette: &mut SwitchPalletteFunc, sw: u32, sh: u32, btns_pressed_this_frame: &[u8; 4], gamepads: &[u8; 4]) {
+pub fn kittygame_update(blit_sub: &mut BlitSubFunc, line: &mut LineFunc, rect: &mut RectFunc, text_str: &mut TextStrFunc, set_palette: &mut SwitchPalletteFunc, sw: u32, sh: u32, btns_pressed_this_frame: &[u8; 4], gamepads: &[u8; 4]) {
     
     let (center_x, center_y) = (sw as f32 / 2., sh as f32 / 2.);
     
@@ -565,7 +565,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
     }
 
     // just draw a spriteframe at a location. Put a colored layer behind it, like layertext() does.
-    fn draw_spriteframe (spriteframe: &spritesheet::SpriteFrame, x: i32, y: i32, blit_sub: &BlitSubFunc) {
+    fn draw_spriteframe (spriteframe: &spritesheet::SpriteFrame, x: i32, y: i32, blit_sub: &mut BlitSubFunc) {
         let cf = spriteframe;
         // for (xx, yy, colors) in [(x, y, 0x1111), (x+1, y+1, 0x1111), (x, y, spritesheet::KITTY_SPRITESHEET_DRAW_COLORS)] {
 
@@ -838,7 +838,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                             }
                         }
                         
-                        let modal_text = |st: &str, x, y| {
+                        let mut modal_text = |st: &str, x, y| {
                             // unsafe {*DRAW_COLORS = 0x0002}
                             text_str(st, m.actual_position.x as i32 + x, m.actual_position.y as i32 + y, &DrawColor::Foreground);
                         };
@@ -975,10 +975,10 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
                                         // text_bytes(&[ b'\x85'], xx+48, yy+114);
                                         // text_bytes(&[b'\x80'], xx+15, yy+126);
                                         // text_bytes(&[ b'\x81'], xx+79, yy+126);
-                                        text_str("<", xx+32, yy+114, &DrawColor::MainKitty);
-                                        text_str(">", xx+48, yy+114, &DrawColor::MainKitty);
-                                        text_str("x", xx+15, yy+126, &DrawColor::MainKitty);
-                                        text_str("z", xx+79, yy+126, &DrawColor::MainKitty);
+                                        // text_str("<", xx+32, yy+114, &DrawColor::MainKitty);
+                                        // text_str(">", xx+48, yy+114, &DrawColor::MainKitty);
+                                        // text_str("x", xx+15, yy+126, &DrawColor::MainKitty);
+                                        // text_str("z", xx+79, yy+126, &DrawColor::MainKitty);
                                     }
                                     
                                     draw_spriteframe( &spritesheet::Sprite::from_preset(&spritesheet::PresetSprites::CatHead).frames[0], xx+20, yy+62, blit_sub);
@@ -1144,7 +1144,7 @@ pub fn kittygame_update(blit_sub: &BlitSubFunc, line: &LineFunc, rect: &RectFunc
 
             // let mut selected_box_dims = (0, 0, 0, 0);
 
-            fn draw_selected_box(dims: (i32, i32, i32, i32), style: u8, color: &DrawColor, line: &LineFunc, rect: &RectFunc) {
+            fn draw_selected_box(dims: (i32, i32, i32, i32), style: u8, color: &DrawColor, line: &mut LineFunc, rect: &mut RectFunc) {
                 draw_modal_bg(&AbsoluteBoundingBox{x: dims.0 as f32, y: dims.1 as f32, width: dims.2 as f32, height: dims.3 as f32}, style, color, line, rect);
             }
 

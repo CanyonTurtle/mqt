@@ -1,10 +1,18 @@
 # MQT
 
-![Kittygame gif](./kittygame.gif)
+<img src="./kittygame.gif" width="400px">
 
 Play online here: <https://canyonturtle.github.io/mqt/>
 
 Kitty game, ported to 3 game engines (originated on wasm4, then ported to macroquad, then to bevy).
+
+## Game Platforms and Engines
+| Wasm-4  | Macroquad      | Bevy               |
+|---------|----------------|--------------------|
+| web     | web            | web (untested)     |
+| desktop | desktop        | desktop            |
+|         | android        | android (untested) |
+|         | ios (untested) | ios (untested)     |
 
 ## Why port a game to 3 platforms?
 Mostly, for educational purposes. But this is an interesting way to compare the pixel-game abilities of various Rust platforms as well.

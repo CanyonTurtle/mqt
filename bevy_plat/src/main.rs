@@ -162,7 +162,7 @@ fn fit_canvas(
 // don't do line.
 
 /// Rotates entities to demonstrate grid snapping.
-fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlases: ResMut<Assets<TextureAtlas>>, mut sprites_this_frame: ResMut<SpritesThisFrame>) {
+fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>, mut sprites_this_frame: ResMut<SpritesThisFrame>) {
     // commands.spawn((
     //     SpriteBundle {
     //         texture: asset_server.load("bevy_pixel_dark.png"),
@@ -186,13 +186,12 @@ fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>,
             multiplatform_defs::Spritesheet::Title => "../../assets/kitty_title.png",
         };
         let texture_handle = asset_server.load(ss_str);
-        let mut texture_atlas = TextureAtlas::new_empty(texture_handle, Vec2{x: 192., y: 64.});
+        let mut texture_atlas = TextureAtlasLayout::new_empty(Vec2{x: 192., y: 64.});
         texture_atlas.add_texture(Rect::new(src_x as f32, src_y as f32, src_x as f32 + w as f32, src_y as f32 + h as f32));
-        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+        let texture_atlas_layout = texture_atlas_layouts.add(texture_atlas);
 
         let mut st = Transform::from_xyz(x as f32 - (RES_WIDTH / 2) as f32, -y as f32 + (RES_HEIGHT / 2) as f32, zc);
         zc += 1.0;
-        let mut tas = TextureAtlasSprite::new(0);
 
         if flags.flip_x {
             st.scale *= Vec3{x: -1., y: 1., z: 1.};
@@ -200,23 +199,31 @@ fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>,
         if flags.flip_y {
             st.scale *= Vec3{x: 1., y: -1., z: 1.};
         }
+        let anchor;
         if flags.flip_x && !flags.flip_y {
-            tas.anchor = Anchor::TopRight;
+            anchor = Anchor::TopRight;
         } else if !flags.flip_x && flags.flip_y {
-            tas.anchor = Anchor::BottomLeft
+            anchor = Anchor::BottomLeft
         } else if flags.flip_x {
-            tas.anchor = Anchor::BottomRight;
+            anchor = Anchor::BottomRight;
         } else {
-            tas.anchor = Anchor::TopLeft;
+            anchor = Anchor::TopLeft;
         }
 
         let handle = commands.spawn((
             SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
-                sprite: tas,
+                sprite: Sprite{
+                    anchor,
+                    ..Default::default()
+                },
+                texture: texture_handle,
+                atlas: TextureAtlas {
+                    layout: texture_atlas_layout,
+                    index: 0,
+                },
                 transform: st,
                 ..Default::default()
-            },
+            },  
             PIXEL_PERFECT_LAYERS
         )).id();
         sprites_this_frame.sprites.push(handle);

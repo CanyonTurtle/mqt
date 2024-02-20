@@ -34,11 +34,16 @@ pub struct SpritesThisFrame {
     pub sprites: Vec<Entity>
 }
 
+#[derive(Resource)]
+pub struct PreviousFrameInput([u8; 4]);
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugins(bevy_framepace::FramepacePlugin)
         .insert_resource(Msaa::Off)
         .insert_resource(SpritesThisFrame{sprites: vec![]})
+        .insert_resource(PreviousFrameInput{0: [0; 4]})
         .add_systems(Startup, setup_camera)
         .add_systems(Update, (fit_canvas, kittygame_update_bevy))
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
@@ -162,7 +167,7 @@ fn fit_canvas(
 // don't do line.
 
 /// Rotates entities to demonstrate grid snapping.
-fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>, mut sprites_this_frame: ResMut<SpritesThisFrame>) {
+fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>, mut sprites_this_frame: ResMut<SpritesThisFrame>, keyboard_input: Res<ButtonInput<KeyCode>>, mut previous_input: ResMut<PreviousFrameInput>) {
     // commands.spawn((
     //     SpriteBundle {
     //         texture: asset_server.load("bevy_pixel_dark.png"),
@@ -240,8 +245,32 @@ fn kittygame_update_bevy(mut commands: Commands, asset_server: Res<AssetServer>,
 
     let switch_palette: &mut SwitchPalletteFunc = &mut |_| {};
 
-    let btns_pressed_this_frame = [0; 4];
-    let gamepads = btns_pressed_this_frame.clone();
+    let mut btns_pressed_this_frame = [0; 4];
+    let mut gamepads = btns_pressed_this_frame.clone();
+
+    const INPUT_MAPPING: &[(KeyCode, u8)] = &[
+        (KeyCode::ArrowLeft, kittygame::multiplatform_defs::BUTTON_LEFT),
+        (KeyCode::ArrowRight, kittygame::multiplatform_defs::BUTTON_RIGHT),
+        (KeyCode::ArrowUp, kittygame::multiplatform_defs::BUTTON_UP),
+        (KeyCode::ArrowDown, kittygame::multiplatform_defs::BUTTON_DOWN),
+        (KeyCode::KeyZ, kittygame::multiplatform_defs::BUTTON_1),
+        (KeyCode::Space, kittygame::multiplatform_defs::BUTTON_1),
+        (KeyCode::KeyX, kittygame::multiplatform_defs::BUTTON_2),
+    ];
+
+    for (keycode, input_bit) in INPUT_MAPPING.into_iter() {
+        if keyboard_input.pressed(*keycode) {
+            gamepads[0] |= input_bit;
+            if previous_input.0[0] & input_bit == 0 {
+                btns_pressed_this_frame[0] |= input_bit;
+            }
+        } 
+    }
+
+    previous_input.0 = btns_pressed_this_frame;
+
+ 
+
 
     kittygame_update(blit_sub, line, rect, text_str, switch_palette, RES_WIDTH as u32, RES_HEIGHT as u32, &btns_pressed_this_frame, &gamepads);
 

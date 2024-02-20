@@ -470,7 +470,7 @@ pub fn update_pos(map: &GameMap, moving_entity: MovingEntity, input: u8, godmode
         KittyStates::JumpingUp(t) => {
             handle_horizontal_input(character, input);
             handle_jumping(character, input, clouds);
-            character.state = KittyStates::JumpingUp((t + 1).min(255));
+            character.state = KittyStates::JumpingUp((t as u32 + 1).min(255) as u8);
         }
         KittyStates::HuggingWall(firstframe) => {
             if firstframe {

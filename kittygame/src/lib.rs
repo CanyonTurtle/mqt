@@ -704,7 +704,7 @@ pub fn kittygame_update(blit_sub: &mut BlitSubFunc, line: &mut LineFunc, rect: &
                                             popup_icon = PopupIcon::Clock;
                                         } else {
                                             p.character.can_fly = true;
-                                            added_t = t - 10;
+                                            added_t = t - 3;
                                             popup_t = Some("fly!".to_string());
                                             popup_icon = PopupIcon::None;
                                         }
@@ -713,7 +713,7 @@ pub fn kittygame_update(blit_sub: &mut BlitSubFunc, line: &mut LineFunc, rect: &
                                     game::ability_cards::AbilityCardUsageResult::EnabledWarpAndTime(t) => {
                                         if p.character.warp_ability == WarpAbility::CannotWarp {
                                             p.character.warp_ability = WarpAbility::CanWarp(WarpState::Charging(0));
-                                            added_t = t - 10;
+                                            added_t = t - 3;
                                             popup_t = Some("hold   : warp".to_string());
                                             popup_icon = PopupIcon::DownArrow;
                                         } else {
